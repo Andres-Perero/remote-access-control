@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accesos Remotos Carel - Frisertec</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e',
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass-panel {
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .card-modern {
+            background: white;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .dark .card-modern {
+            background: #1e293b;
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        
+        .card-modern:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #0ea5e9;
+        }
+        .dark .card-modern:hover {
+            border-color: #38bdf8;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .credential-row {
+            transition: background-color 0.2s;
+        }
+        .credential-row:hover {
+            background-color: rgba(14, 165, 233, 0.05);
+        }
+        .dark .credential-row:hover {
+            background-color: rgba(14, 165, 233, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col selection:bg-brand-500 selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="sticky top-0 z-40 glass-panel shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-4">
+                    <div class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-brand-600 to-indigo-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
+                        <div class="relative w-12 h-12 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold text-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+                            F
+                        </div>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Frisertec</h1>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase">Accesos Remotos Carel</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button id="theme-toggle" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none" aria-label="Toggle Dark Mode">
+                        <i class="fas fa-moon text-lg dark:hidden"></i>
+                        <i class="fas fa-sun text-lg text-yellow-400 hidden dark:block"></i>
+                    </button>
+                    
+                    <button onclick="toggleAdminMode()" id="admin-btn" class="group relative overflow-hidden rounded-lg px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium text-sm shadow-lg shadow-slate-900/20 dark:shadow-white/10 transition-all hover:scale-105 active:scale-95">
+                        <span class="relative z-10 flex items-center gap-2">
+                            <i class="fas fa-shield-alt"></i>
+                            <span id="admin-btn-text">Admin Login</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-12">
+        
+        <!-- Header Section -->
+        <div class="mb-12 text-center max-w-3xl mx-auto animate-fade-in">
+            <h2 class="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight text-slate-900 dark:text-white">
+                Panel de Control <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-brand-400 dark:to-indigo-400">Remoto</span>
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400 text-lg mb-8 leading-relaxed">
+                Centralización segura de accesos a plataformas de monitoreo y gestión industrial.
+            </p>
+            
+            <!-- Search Bar -->
+            <div class="relative max-w-xl mx-auto group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-slate-400 group-focus-within:text-brand-500 transition-colors"></i>
+                </div>
+                <input type="text" id="search-input" 
+                    class="block w-full pl-12 pr-4 py-4 border-0 rounded-2xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50 shadow-xl shadow-slate-200/50 dark:shadow-black/20 transition-all text-base" 
+                    placeholder="Buscar por empresa, ciudad o sitio...">
+            </div>
+        </div>
+
+        <!-- Grid Container -->
+        <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-12">
+            <!-- Cards will be injected here by JS -->
+        </div>
+
+        <!-- Empty State (Hidden by default) -->
+        <div id="empty-state" class="hidden text-center py-20 animate-fade-in">
+            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-6 shadow-inner">
+                <i class="fas fa-search text-slate-400 text-3xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">No se encontraron resultados</h3>
+            <p class="text-slate-500 dark:text-slate-400">Intenta ajustar los términos de búsqueda.</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    &copy; 2026 Frisertec. Sistema Operativo.
+                </p>
+            </div>
+            <div class="flex space-x-6 text-sm text-slate-400">
+                <span>v1.2.0</span>
+                <span>•</span>
+                <span>Secure Connection</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Admin Login Modal -->
+    <div id="login-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeAdminModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border border-slate-200 dark:border-slate-700">
+                <div class="px-6 pt-8 pb-6">
+                    <div class="text-center mb-6">
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-brand-50 dark:bg-brand-900/30 mb-4">
+                            <i class="fas fa-lock text-brand-600 dark:text-brand-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white" id="modal-title">Acceso Restringido</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Ingrese la contraseña maestra para visualizar las credenciales de acceso.</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="admin-password" class="sr-only">Contraseña</label>
+                            <input type="password" id="admin-password" 
+                                class="appearance-none relative block w-full px-4 py-3 border border-slate-300 dark:border-slate-600 placeholder-slate-500 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:z-10 sm:text-sm dark:bg-slate-700 transition-all" 
+                                placeholder="Contraseña Maestra">
+                        </div>
+                        <p id="login-error" class="text-red-500 text-xs font-medium hidden flex items-center gap-1">
+                            <i class="fas fa-exclamation-circle"></i> Contraseña incorrecta.
+                        </p>
+                    </div>
+                </div>
+                <div class="bg-slate-50 dark:bg-slate-700/30 px-6 py-4 sm:flex sm:flex-row-reverse gap-3">
+                    <button type="button" onclick="attemptLogin()" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-3 bg-brand-600 text-base font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 sm:w-auto sm:text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30">
+                        Desbloquear
+                    </button>
+                    <button type="button" onclick="closeAdminModal()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-600 shadow-sm px-6 py-3 bg-white dark:bg-slate-800 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-all">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 z-50 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
+        <i class="fas fa-check-circle text-green-400 dark:text-green-600"></i>
+        <span class="font-medium text-sm">Copiado al portapapeles</span>
+    </div>
+
+    <!--
+        ============================================================
+        NOTA DE SEGURIDAD / PROTOTIPO
+        ============================================================
+        Este archivo es un PROTOTIPO ESTÁTICO con datos de ejemplo
+        (placeholders). Todo lo que está en ACCESS_DATA se descarga
+        completo al navegador de cualquier visitante, sea admin o no.
+        El "Admin Login" solo oculta/muestra visualmente el bloque
+        de credenciales en el DOM: NO es una barrera de seguridad real.
+
+        Antes de usar credenciales reales de clientes en producción,
+        mover ACCESS_DATA a un backend (API route de Vercel + auth
+        real, ej. JWT/sesión) que solo entregue las credenciales a
+        usuarios autenticados en el servidor.
+        ============================================================
+    -->
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- DATA CONFIGURATION (PLACEHOLDER / DEMO DATA) ---
+        const ACCESS_DATA = [
+            {
+                "id": 1,
+                "empresa": "Carel Chile",
+                "nombre_sitio": "Plataforma Principal IP",
+                "url": "https://181.198.245.131/boss/",
+                "provincia": "RM",
+                "ciudad": "Santiago",
+                "direccion": "Av. Sufragio Libre 1234",
+                "user": "admin_carel",
+                "pass": "Friser2026!",
+                "system_adm": "sys_admin_cl",
+                "system_adm_pass": "SuperAdmin99"
+            },
+            {
+                "id": 2,
+                "empresa": "Carel Sur",
+                "nombre_sitio": "Nodo Secundario",
+                "url": "https://186.101.233.174/boss/",
+                "provincia": "Araucanía",
+                "ciudad": "Temuco",
+                "direccion": "Av. Alemania 2200",
+                "user": "operador_sur",
+                "pass": "SurAccess24",
+                "system_adm": "root_sur",
+                "system_adm_pass": "RootSur#1"
+            },
+            {
+                "id": 3,
+                "empresa": "Frisertec HQ",
+                "nombre_sitio": "Monitor Central",
+                "url": "#",
+                "provincia": "RM",
+                "ciudad": "Santiago",
+                "direccion": "Oficina Central, Av. Providencia 999",
+                "user": "friser_main",
+                "pass": "HQ_Secure_2026",
+                "system_adm": "hq_master",
+                "system_adm_pass": "MasterKey_HQ"
+            },
+            {
+                "id": 4,
+                "empresa": "Cliente Externo A",
+                "nombre_sitio": "Gateway Remoto",
+                "url": "#",
+                "provincia": "Valparaíso",
+                "ciudad": "Viña del Mar",
+                "direccion": "Av. San Martín 450",
+                "user": "guest_user",
+                "pass": "TempPass123",
+                "system_adm": "ext_admin_a",
+                "system_adm_pass": "AdminExt_A"
+            },
+             {
+                "id": 5,
+                "empresa": "Planta Norte",
+                "nombre_sitio": "SCADA Web View",
+                "url": "#",
+                "provincia": "II Región",
+                "ciudad": "Antofagasta",
+                "direccion": "Av. Grecia 3100",
+                "user": "planta_norte",
+                "pass": "Norte2026X",
+                "system_adm": "norte_sys",
+                "system_adm_pass": "AdminNorte!"
+            }
+        ];
+
+        const ADMIN_MASTER_PASS = "admin1!"; 
+
+        // --- STATE MANAGEMENT ---
+        let isAdminLoggedIn = false;
+
+        // --- DOM ELEMENTS ---
+        const gridContainer = document.getElementById('links-grid');
+        const searchInput = document.getElementById('search-input');
+        const emptyState = document.getElementById('empty-state');
+        const loginModal = document.getElementById('login-modal');
+        const passwordInput = document.getElementById('admin-password');
+        const loginError = document.getElementById('login-error');
+        const themeToggle = document.getElementById('theme-toggle');
+        const adminBtnText = document.getElementById('admin-btn-text');
+        const toast = document.getElementById('toast');
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCards(ACCESS_DATA);
+            initTheme();
+        });
+
+        // --- THEME LOGIC ---
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        });
+
+        // --- RENDER LOGIC ---
+        function renderCards(data) {
+            gridContainer.innerHTML = '';
+            
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            data.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card-modern rounded-2xl overflow-hidden flex flex-col h-full animate-slide-up';
+                card.style.animationDelay = `${index * 50}ms`;
+                
+                // Determine icon based on URL or generic
+                const iconClass = item.url.includes('boss') ? 'fa-server' : 'fa-network-wired';
+
+                // Credentials Section (Only visible if Admin Logged In)
+                const credentialsHtml = isAdminLoggedIn ? `
+                    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl text-sm">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-bold text-slate-700 dark:text-slate-200 text-xs uppercase tracking-wider">Credenciales de Acceso</span>
+                            <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full dark:bg-green-900/50 dark:text-green-400 font-semibold border border-green-200 dark:border-green-800">VISIBLE</span>
+                        </div>
+                        
+                        <!-- User / Pass Block -->
+                        <div class="mb-3">
+                            <p class="text-[10px] font-bold text-brand-600 dark:text-brand-400 mb-1.5 uppercase flex items-center gap-1">
+                                <i class="fas fa-user"></i> Usuario Estándar
+                            </p>
+                            <div class="space-y-1.5">
+                                ${createCredentialRow('User', item.user)}
+                                ${createCredentialRow('Pass', item.pass)}
+                            </div>
+                        </div>
+
+                        <!-- System Admin Block -->
+                        <div>
+                            <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 mb-1.5 uppercase flex items-center gap-1">
+                                <i class="fas fa-user-cog"></i> System Admin
+                            </p>
+                            <div class="space-y-1.5">
+                                ${createCredentialRow('Sys Adm', item.system_adm)}
+                                ${createCredentialRow('Sys Pass', item.system_adm_pass, true)}
+                            </div>
+                        </div>
+                    </div>
+                ` : `
+                    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-center items-center py-2">
+                         <button onclick="toggleAdminMode()" class="text-xs text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors flex items-center gap-1">
+                            <i class="fas fa-lock"></i> Ver Credenciales (Requiere Admin)
+                         </button>
+                    </div>
+                `;
+
+                card.innerHTML = `
+                    <div class="p-6 flex-grow relative">
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 flex items-center justify-center text-brand-600 dark:text-brand-400 shadow-sm border border-brand-100 dark:border-brand-900/30">
+                                <i class="fas ${iconClass} text-xl"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <h3 class="font-bold text-lg text-slate-900 dark:text-white leading-tight break-words">${item.nombre_sitio}</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wide mt-0.5">${item.empresa}</p>
+                            </div>
+                        </div>
+
+                        <!-- Location Block -->
+                        <div class="flex items-start gap-2 mb-5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <i class="fas fa-map-marker-alt text-brand-500 mt-0.5"></i>
+                            <div class="leading-snug">
+                                <span class="font-semibold text-slate-600 dark:text-slate-300">${item.ciudad}, ${item.provincia}</span>
+                                <br>
+                                <span>${item.direccion}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <p class="text-sm text-slate-600 dark:text-slate-300 truncate font-mono bg-slate-50 dark:bg-slate-900/50 p-2 rounded border border-slate-100 dark:border-slate-800" title="${item.url}">
+                                <i class="fas fa-link text-xs mr-2 text-slate-400"></i>${item.url.replace(/^https?:\/\//, '')}
+                            </p>
+                        </div>
+
+                        ${credentialsHtml}
+                    </div>
+                    
+                    <div class="px-6 pb-6 pt-2 mt-auto">
+                        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="group relative w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-brand-500/20 active:scale-95 overflow-hidden">
+                            <span class="relative z-10">Acceder al Sitio</span>
+                            <i class="fas fa-arrow-right relative z-10 transform group-hover:translate-x-1 transition-transform"></i>
+                            <div class="absolute inset-0 bg-gradient-to-r from-brand-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </a>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+        }
+
+        // Helper to create credential rows
+        function createCredentialRow(label, value, isSensitive = false) {
+            return `
+                <div class="credential-row flex justify-between items-center p-2 rounded cursor-pointer group" onclick="copyToClipboard('${value}')">
+                    <span class="text-slate-500 dark:text-slate-400 text-xs font-medium w-16">${label}:</span>
+                    <div class="flex items-center gap-2 flex-1 justify-end">
+                        <span class="font-mono text-slate-800 dark:text-slate-200 text-xs truncate max-w-[120px] ${isSensitive ? 'text-red-600 dark:text-red-400' : ''}">${value}</span>
+                        <i class="far fa-copy text-slate-300 dark:text-slate-600 group-hover:text-brand-500 transition-colors text-xs"></i>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- SEARCH LOGIC ---
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = ACCESS_DATA.filter(item => 
+                item.empresa.toLowerCase().includes(term) || 
+                item.nombre_sitio.toLowerCase().includes(term) ||
+                item.ciudad.toLowerCase().includes(term) ||
+                item.provincia.toLowerCase().includes(term) ||
+                item.direccion.toLowerCase().includes(term) ||
+                item.url.toLowerCase().includes(term)
+            );
+            renderCards(filtered);
+        });
+
+        // --- ADMIN MODAL LOGIC ---
+        function toggleAdminMode() {
+            if (isAdminLoggedIn) {
+                isAdminLoggedIn = false;
+                adminBtnText.textContent = "Admin Login";
+                renderCards(ACCESS_DATA);
+                showToast("Sesión de administrador cerrada");
+                return;
+            }
+            openAdminModal();
+        }
+
+        function openAdminModal() {
+            loginModal.classList.remove('hidden');
+            passwordInput.value = '';
+            loginError.classList.add('hidden');
+            setTimeout(() => passwordInput.focus(), 100);
+        }
+
+        function closeAdminModal() {
+            loginModal.classList.add('hidden');
+        }
+
+        function attemptLogin() {
+            const inputPass = passwordInput.value;
+            if (inputPass === ADMIN_MASTER_PASS) {
+                isAdminLoggedIn = true;
+                adminBtnText.textContent = "Logout Admin";
+                closeAdminModal();
+                renderCards(ACCESS_DATA);
+                showToast("Acceso Admin Concedido");
+            } else {
+                loginError.classList.remove('hidden');
+                passwordInput.classList.add('border-red-500', 'ring-1', 'ring-red-500');
+                setTimeout(() => {
+                    passwordInput.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+                }, 2000);
+            }
+        }
+
+        passwordInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') attemptLogin();
+        });
+
+        // --- UTILITIES ---
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Copiado al portapapeles");
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        function showToast(message) {
+            const toastEl = document.getElementById('toast');
+            toastEl.querySelector('span').textContent = message;
+            toastEl.classList.remove('translate-y-20', 'opacity-0');
+            
+            setTimeout(() => {
+                toastEl.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
