@@ -3,48 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accesos Remotos Carel - Frisertec</title>
-    
-    <!-- Tailwind CSS -->
+    <title>Frisertec - Accesos Remotos & Reportes</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Google Fonts (Inter) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- EXIF.js: lee metadata de fotos (fecha, GPS) sin recomprimir el archivo -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.js"></script>
+    <!-- jsPDF para descargar reportes en PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            900: '#0c4a6e',
-                        }
-                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: { brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' } },
                     animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out',
-                        'slide-up': 'slideUp 0.5s ease-out',
+                        'fade-in': 'fadeIn 0.4s ease-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'slide-in-left': 'slideInLeft 0.25s ease-out',
                     },
                     keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        }
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(16px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        slideInLeft: { '0%': { transform: 'translateX(-100%)' }, '100%': { transform: 'translateX(0)' } },
                     }
                 }
             }
@@ -52,64 +36,33 @@
     </script>
 
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #475569;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .dark .glass-panel {
-            background: rgba(15, 23, 42, 0.8);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
+        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+        .dark .glass-panel { background: rgba(15, 23, 42, 0.85); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 
-        .card-modern {
-            background: white;
-            border: 1px solid rgba(226, 232, 240, 0.8);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .dark .card-modern {
-            background: #1e293b;
-            border: 1px solid rgba(51, 65, 85, 0.5);
-        }
-        
-        .card-modern:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            border-color: #0ea5e9;
-        }
-        .dark .card-modern:hover {
-            border-color: #38bdf8;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-        }
+        .card-modern { background: white; border: 1px solid rgba(226, 232, 240, 0.8); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .dark .card-modern { background: #1e293b; border: 1px solid rgba(51, 65, 85, 0.5); }
+        .card-modern:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); border-color: #0ea5e9; }
+        .dark .card-modern:hover { border-color: #38bdf8; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
 
-        .credential-row {
-            transition: background-color 0.2s;
-        }
-        .credential-row:hover {
-            background-color: rgba(14, 165, 233, 0.05);
-        }
-        .dark .credential-row:hover {
-            background-color: rgba(14, 165, 233, 0.1);
+        .credential-row { transition: background-color 0.2s; }
+        .credential-row:hover { background-color: rgba(14,165,233,0.05); }
+        .dark .credential-row:hover { background-color: rgba(14,165,233,0.1); }
+
+        .prov-item { transition: all 0.15s ease; }
+        .prov-item.active { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; }
+        .prov-item:not(.active):hover { background: rgba(14,165,233,0.08); }
+
+        .thumb { width: 84px; height: 84px; object-fit: cover; border-radius: 10px; }
+
+        @media (max-width: 1023px) {
+            #sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 84%; max-width: 320px; z-index: 60; transform: translateX(-100%); transition: transform 0.25s ease; }
+            #sidebar.open { transform: translateX(0); animation: slideInLeft 0.25s ease-out; }
         }
     </style>
 </head>
@@ -117,31 +70,31 @@
 
     <!-- Navbar -->
     <nav class="sticky top-0 z-40 glass-panel shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-20 items-center">
-                <div class="flex items-center gap-4">
-                    <div class="relative group">
+        <div class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <button onclick="openSidebar()" class="lg:hidden w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shrink-0" aria-label="Provincias">
+                        <i class="fas fa-map-location-dot text-lg"></i>
+                    </button>
+                    <div class="relative group hidden sm:block shrink-0">
                         <div class="absolute -inset-1 bg-gradient-to-r from-brand-600 to-indigo-600 rounded-lg blur opacity-25 group-hover:opacity-50 transition duration-200"></div>
-                        <div class="relative w-12 h-12 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold text-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-                            F
-                        </div>
+                        <div class="relative w-12 h-12 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center text-brand-600 dark:text-brand-400 font-bold text-2xl shadow-sm border border-slate-100 dark:border-slate-700">F</div>
                     </div>
-                    <div>
-                        <h1 class="font-bold text-xl tracking-tight text-slate-900 dark:text-white">Frisertec</h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase">Accesos Remotos Carel</p>
+                    <div class="min-w-0">
+                        <h1 class="font-bold text-lg sm:text-xl tracking-tight text-slate-900 dark:text-white truncate">Frisertec</h1>
+                        <p class="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase truncate">Accesos & Reportes</p>
                     </div>
                 </div>
-                
-                <div class="flex items-center gap-3">
+
+                <div class="flex items-center gap-2 sm:gap-3 shrink-0">
                     <button id="theme-toggle" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none" aria-label="Toggle Dark Mode">
                         <i class="fas fa-moon text-lg dark:hidden"></i>
                         <i class="fas fa-sun text-lg text-yellow-400 hidden dark:block"></i>
                     </button>
-                    
-                    <button onclick="toggleAdminMode()" id="admin-btn" class="group relative overflow-hidden rounded-lg px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium text-sm shadow-lg shadow-slate-900/20 dark:shadow-white/10 transition-all hover:scale-105 active:scale-95">
+                    <button onclick="toggleAdminMode()" id="admin-btn" class="group relative overflow-hidden rounded-lg px-3 sm:px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-medium text-xs sm:text-sm shadow-lg shadow-slate-900/20 dark:shadow-white/10 transition-all hover:scale-105 active:scale-95">
                         <span class="relative z-10 flex items-center gap-2">
                             <i class="fas fa-shield-alt"></i>
-                            <span id="admin-btn-text">Admin Login</span>
+                            <span id="admin-btn-text" class="hidden sm:inline">Admin Login</span>
                         </span>
                     </button>
                 </div>
@@ -149,102 +102,250 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-12">
-        
-        <!-- Header Section -->
-        <div class="mb-12 text-center max-w-3xl mx-auto animate-fade-in">
-            <h2 class="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight text-slate-900 dark:text-white">
-                Panel de Control <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600 dark:from-brand-400 dark:to-indigo-400">Remoto</span>
-            </h2>
-            <p class="text-slate-600 dark:text-slate-400 text-lg mb-8 leading-relaxed">
-                Centralización segura de accesos a plataformas de monitoreo y gestión industrial.
-            </p>
-            
-            <!-- Search Bar -->
-            <div class="relative max-w-xl mx-auto group">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i class="fas fa-search text-slate-400 group-focus-within:text-brand-500 transition-colors"></i>
+    <div id="sidebar-overlay" onclick="closeSidebar()" class="hidden fixed inset-0 bg-slate-900/60 z-50 lg:hidden"></div>
+
+    <div class="flex-grow flex w-full max-w-[1600px] mx-auto">
+        <!-- Sidebar de Provincias -->
+        <aside id="sidebar" class="w-72 shrink-0 bg-white dark:bg-slate-900 lg:bg-transparent dark:lg:bg-transparent border-r border-slate-200 dark:border-slate-800 lg:border-0 lg:sticky lg:top-[85px] lg:h-[calc(100vh-85px)] overflow-y-auto">
+            <div class="p-4">
+                <div class="flex items-center justify-between mb-3 lg:mb-4">
+                    <h2 class="font-bold text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                        <i class="fas fa-map-marked-alt text-brand-500"></i> Provincias
+                    </h2>
+                    <button onclick="closeSidebar()" class="lg:hidden w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <input type="text" id="search-input" 
-                    class="block w-full pl-12 pr-4 py-4 border-0 rounded-2xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50 shadow-xl shadow-slate-200/50 dark:shadow-black/20 transition-all text-base" 
-                    placeholder="Buscar por empresa, ciudad o sitio...">
+                <div id="province-list" class="space-y-1"></div>
             </div>
-        </div>
+        </aside>
 
-        <!-- Grid Container -->
-        <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-12">
-            <!-- Cards will be injected here by JS -->
-        </div>
+        <!-- Contenido Principal -->
+        <main class="flex-grow min-w-0 px-4 sm:px-6 lg:px-8 py-8">
 
-        <!-- Empty State (Hidden by default) -->
-        <div id="empty-state" class="hidden text-center py-20 animate-fade-in">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-6 shadow-inner">
-                <i class="fas fa-search text-slate-400 text-3xl"></i>
+            <!-- ===================== VISTA: LISTADO DE LOCALES DE LA PROVINCIA ===================== -->
+            <div id="view-locales">
+                <div class="mb-8 animate-fade-in">
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-3 flex-wrap">
+                        <i class="fas fa-location-dot text-brand-500"></i>
+                        <span id="current-province-title">Guayas</span>
+                    </h2>
+                    <p class="text-slate-500 dark:text-slate-400 mt-1 text-sm sm:text-base">Selecciona un local para ver sus accesos y su historial de reportes.</p>
+
+                    <div class="relative max-w-xl mt-6 group">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-slate-400 group-focus-within:text-brand-500 transition-colors"></i>
+                        </div>
+                        <input type="text" id="search-input"
+                            class="block w-full pl-12 pr-4 py-3.5 border-0 rounded-2xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50 shadow-lg shadow-slate-200/50 dark:shadow-black/20 transition-all text-sm"
+                            placeholder="Buscar por nombre, ciudad o dirección...">
+                    </div>
+                </div>
+
+                <div id="links-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12"></div>
+
+                <div id="empty-state" class="hidden text-center py-20 animate-fade-in">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-6 shadow-inner">
+                        <i class="fas fa-map-marker-alt text-slate-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Sin locales registrados</h3>
+                    <p class="text-slate-500 dark:text-slate-400">Esta provincia aún no tiene locales o accesos cargados.</p>
+                </div>
             </div>
-            <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">No se encontraron resultados</h3>
-            <p class="text-slate-500 dark:text-slate-400">Intenta ajustar los términos de búsqueda.</p>
-        </div>
-    </main>
+
+            <!-- ===================== VISTA: DETALLE DE UN LOCAL (ACCESO + HISTORIAL DE REPORTES) ===================== -->
+            <div id="view-local-detail" class="hidden">
+                <button onclick="backToLocales()" class="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                    <i class="fas fa-arrow-left"></i> Volver a locales de <span id="back-province-name">la provincia</span>
+                </button>
+
+                <!-- Tarjeta de acceso del local -->
+                <div id="local-detail-card" class="card-modern rounded-2xl p-6 mb-8 animate-fade-in"></div>
+
+                <!-- Historial de reportes -->
+                <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-5">
+                    <div>
+                        <h3 class="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900 dark:text-white">Historial de Reportes</h3>
+                        <p class="text-slate-500 dark:text-slate-400 text-sm mt-0.5">Emergencias y mantenimientos registrados en este local.</p>
+                    </div>
+                    <button id="btn-nuevo-reporte" onclick="openReportModal()" class="hidden shrink-0 flex items-center justify-center gap-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold px-5 py-3 rounded-xl shadow-lg shadow-brand-500/20 transition-all active:scale-95">
+                        <i class="fas fa-plus"></i> Nuevo Reporte
+                    </button>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3 mb-6">
+                    <div class="relative flex-1">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"><i class="fas fa-search text-slate-400"></i></div>
+                        <input type="text" id="report-search" class="block w-full pl-12 pr-4 py-3 border-0 rounded-2xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500/50 shadow-lg shadow-slate-200/50 dark:shadow-black/20 text-sm" placeholder="Buscar por código o descripción...">
+                    </div>
+                    <select id="report-filter-tipo" class="rounded-2xl border-0 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 text-sm shadow-lg shadow-slate-200/50 dark:shadow-black/20 focus:outline-none focus:ring-2 focus:ring-brand-500/50">
+                        <option value="">Todos los tipos</option>
+                        <option value="emergencia">Emergencia</option>
+                        <option value="mantenimiento">Mantenimiento</option>
+                    </select>
+                </div>
+
+                <div id="reports-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12"></div>
+
+                <div id="reports-empty-state" class="hidden text-center py-16 animate-fade-in">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-6 shadow-inner">
+                        <i class="fas fa-clipboard-list text-slate-400 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Este local aún no tiene reportes</h3>
+                    <p class="text-slate-500 dark:text-slate-400">Crea el primero con el botón "Nuevo Reporte".</p>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <!-- Footer -->
     <footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
-        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-[1600px] mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                    &copy; 2026 Frisertec. Sistema Operativo.
-                </p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">&copy; 2026 Frisertec. Sistema Operativo.</p>
             </div>
-            <div class="flex space-x-6 text-sm text-slate-400">
-                <span>v1.2.0</span>
-                <span>•</span>
-                <span>Secure Connection</span>
-            </div>
+            <div class="flex space-x-6 text-sm text-slate-400"><span>v3.0.0</span><span>•</span><span>Secure Connection</span></div>
         </div>
     </footer>
 
     <!-- Admin Login Modal -->
-    <div id="login-modal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div id="login-modal" class="fixed inset-0 z-[70] hidden overflow-y-auto" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeAdminModal()"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeAdminModal()"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
             <div class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border border-slate-200 dark:border-slate-700">
                 <div class="px-6 pt-8 pb-6">
                     <div class="text-center mb-6">
-                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-brand-50 dark:bg-brand-900/30 mb-4">
-                            <i class="fas fa-lock text-brand-600 dark:text-brand-400 text-2xl"></i>
-                        </div>
-                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white" id="modal-title">Acceso Restringido</h3>
+                        <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-brand-50 dark:bg-brand-900/30 mb-4"><i class="fas fa-lock text-brand-600 dark:text-brand-400 text-2xl"></i></div>
+                        <h3 class="text-2xl font-bold text-slate-900 dark:text-white">Acceso Restringido</h3>
                         <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">Ingrese la contraseña maestra para visualizar las credenciales de acceso.</p>
                     </div>
-                    
                     <div class="space-y-4">
-                        <div>
-                            <label for="admin-password" class="sr-only">Contraseña</label>
-                            <input type="password" id="admin-password" 
-                                class="appearance-none relative block w-full px-4 py-3 border border-slate-300 dark:border-slate-600 placeholder-slate-500 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 focus:z-10 sm:text-sm dark:bg-slate-700 transition-all" 
-                                placeholder="Contraseña Maestra">
-                        </div>
-                        <p id="login-error" class="text-red-500 text-xs font-medium hidden flex items-center gap-1">
-                            <i class="fas fa-exclamation-circle"></i> Contraseña incorrecta.
-                        </p>
+                        <input type="password" id="admin-password" class="appearance-none relative block w-full px-4 py-3 border border-slate-300 dark:border-slate-600 placeholder-slate-500 text-slate-900 dark:text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 sm:text-sm dark:bg-slate-700 transition-all" placeholder="Contraseña Maestra">
+                        <p id="login-error" class="text-red-500 text-xs font-medium hidden flex items-center gap-1"><i class="fas fa-exclamation-circle"></i> Contraseña incorrecta.</p>
                     </div>
                 </div>
                 <div class="bg-slate-50 dark:bg-slate-700/30 px-6 py-4 sm:flex sm:flex-row-reverse gap-3">
-                    <button type="button" onclick="attemptLogin()" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-3 bg-brand-600 text-base font-medium text-white hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 sm:w-auto sm:text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30">
-                        Desbloquear
-                    </button>
-                    <button type="button" onclick="closeAdminModal()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-600 shadow-sm px-6 py-3 bg-white dark:bg-slate-800 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none sm:mt-0 sm:w-auto sm:text-sm transition-all">
-                        Cancelar
-                    </button>
+                    <button type="button" onclick="attemptLogin()" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-6 py-3 bg-brand-600 text-base font-medium text-white hover:bg-brand-700 sm:w-auto sm:text-sm transition-all hover:shadow-lg hover:shadow-brand-500/30">Desbloquear</button>
+                    <button type="button" onclick="closeAdminModal()" class="mt-3 w-full inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-600 shadow-sm px-6 py-3 bg-white dark:bg-slate-800 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 sm:mt-0 sm:w-auto sm:text-sm transition-all">Cancelar</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 z-50 bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
+    <!-- Report Form Modal -->
+    <div id="report-modal" class="fixed inset-0 z-[70] hidden overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex items-start sm:items-center justify-center min-h-screen p-3 sm:p-4">
+            <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeReportModal()"></div>
+            <div class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-700 my-6">
+                <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 rounded-t-2xl z-10">
+                    <div>
+                        <h3 id="report-modal-title" class="text-lg font-bold text-slate-900 dark:text-white">Nuevo Reporte</h3>
+                        <p id="report-modal-local" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5"></p>
+                    </div>
+                    <button onclick="closeReportModal()" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fas fa-times"></i></button>
+                </div>
+
+                <form id="report-form" class="px-6 py-5 space-y-5" onsubmit="return false;">
+                    <input type="hidden" id="report-id">
+                    <input type="hidden" id="report-local-id">
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Código</label>
+                            <input id="report-codigo" readonly class="w-full px-3 py-2.5 rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-mono text-slate-600 dark:text-slate-300">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Tipo</label>
+                            <select id="report-tipo" class="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                                <option value="mantenimiento">Mantenimiento</option>
+                                <option value="emergencia">Emergencia</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Fecha</label>
+                        <input id="report-fecha" type="date" class="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Hora de entrada</label>
+                            <input type="time" id="entrada-time" step="300" class="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Hora de salida</label>
+                            <input type="time" id="salida-time" step="300" class="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                        </div>
+                    </div>
+
+                    <!-- Personal: lista desplegable (antes del problema) -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Personal que realizó el trabajo</label>
+                        <div class="relative">
+                            <button type="button" onclick="togglePersonnelDropdown()" id="personnel-dropdown-btn" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm text-left">
+                                <span id="personnel-dropdown-label" class="text-slate-400">Seleccionar personal...</span>
+                                <i class="fas fa-chevron-down text-xs text-slate-400"></i>
+                            </button>
+                            <div id="personnel-dropdown-panel" class="hidden absolute z-20 mt-1 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl p-2 space-y-1"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Problema reportado</label>
+                        <textarea id="report-problema" rows="3" placeholder="Describe el problema encontrado..." class="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Reparación efectuada</label>
+                        <textarea id="report-reparacion" rows="3" placeholder="Describe qué se hizo para resolverlo..." class="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Implementos utilizados</label>
+                        <textarea id="report-implementos" rows="2" placeholder="Ej: Multímetro, cinta aislante, repuesto sensor..." class="w-full px-3 py-2.5 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm"></textarea>
+                    </div>
+
+                    <!-- Imágenes (opcional) -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1.5">Imágenes <span class="normal-case font-medium text-slate-400">(opcional)</span></label>
+                        <input type="file" id="report-images" accept="image/*" multiple onchange="handleImageUpload(event)" class="block w-full text-sm text-slate-600 dark:text-slate-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 dark:file:bg-brand-900/30 dark:file:text-brand-300 hover:file:bg-brand-100">
+                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">Se guardan sin recomprimir para conservar su metadata original (fecha, GPS si el celular la incluye).</p>
+                        <div id="image-preview" class="flex flex-wrap gap-3 mt-3"></div>
+                    </div>
+                </form>
+
+                <div class="bg-slate-50 dark:bg-slate-700/30 px-6 py-4 flex flex-col sm:flex-row-reverse gap-3 rounded-b-2xl sticky bottom-0">
+                    <button type="button" onclick="saveReport()" class="w-full sm:w-auto inline-flex justify-center items-center gap-2 rounded-xl px-6 py-3 bg-brand-600 text-white font-semibold hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/30"><i class="fas fa-save"></i> Guardar Reporte</button>
+                    <button type="button" onclick="closeReportModal()" class="w-full sm:w-auto inline-flex justify-center rounded-xl border border-slate-300 dark:border-slate-600 px-6 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Detail Modal -->
+    <div id="report-detail-modal" class="fixed inset-0 z-[70] hidden overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex items-start sm:items-center justify-center min-h-screen p-3 sm:p-4">
+            <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm" onclick="closeDetailModal()"></div>
+            <div class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-700 my-6">
+                <div class="flex items-center justify-between px-6 py-5 border-b border-slate-100 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 rounded-t-2xl z-10">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Detalle del Reporte</h3>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-download-pdf" onclick="downloadReportPdf()" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button onclick="closeDetailModal()" class="w-9 h-9 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><i class="fas fa-times"></i></button>
+                    </div>
+                </div>
+                <div id="report-detail-content" class="px-6 py-5 space-y-4 text-sm"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 left-5 sm:left-auto transform translate-y-20 opacity-0 transition-all duration-300 z-[80] bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
         <i class="fas fa-check-circle text-green-400 dark:text-green-600"></i>
         <span class="font-medium text-sm">Copiado al portapapeles</span>
     </div>
@@ -253,96 +354,58 @@
         ============================================================
         NOTA DE SEGURIDAD / PROTOTIPO
         ============================================================
-        Este archivo es un PROTOTIPO ESTÁTICO con datos de ejemplo
-        (placeholders). Todo lo que está en ACCESS_DATA se descarga
-        completo al navegador de cualquier visitante, sea admin o no.
-        El "Admin Login" solo oculta/muestra visualmente el bloque
-        de credenciales en el DOM: NO es una barrera de seguridad real.
-
-        Antes de usar credenciales reales de clientes en producción,
-        mover ACCESS_DATA a un backend (API route de Vercel + auth
-        real, ej. JWT/sesión) que solo entregue las credenciales a
-        usuarios autenticados en el servidor.
+        - ACCESS_DATA (credenciales) es de ejemplo. Todo el JS de este
+          archivo se descarga completo al navegador; el "Admin Login"
+          solo oculta/muestra el bloque en el DOM, no es una barrera
+          de seguridad real. Antes de usar credenciales reales, mover
+          esto a un backend con autenticación real.
+        - Los REPORTES (con sus imágenes en base64) se guardan en
+          localStorage del navegador: son solo locales a ese
+          dispositivo/navegador y tienen un límite de tamaño
+          (~5-10MB). Para uso real multiusuario hace falta un backend
+          (API + base de datos + almacenamiento de archivos).
         ============================================================
     -->
 
-    <!-- JavaScript Logic -->
     <script>
-        // --- DATA CONFIGURATION (PLACEHOLDER / DEMO DATA) ---
-        const ACCESS_DATA = [
-            {
-                "id": 1,
-                "empresa": "Carel Chile",
-                "nombre_sitio": "Plataforma Principal IP",
-                "url": "https://181.198.245.131/boss/",
-                "provincia": "RM",
-                "ciudad": "Santiago",
-                "direccion": "Av. Sufragio Libre 1234",
-                "user": "admin_carel",
-                "pass": "Friser2026!",
-                "system_adm": "sys_admin_cl",
-                "system_adm_pass": "SuperAdmin99"
-            },
-            {
-                "id": 2,
-                "empresa": "Carel Sur",
-                "nombre_sitio": "Nodo Secundario",
-                "url": "https://186.101.233.174/boss/",
-                "provincia": "Araucanía",
-                "ciudad": "Temuco",
-                "direccion": "Av. Alemania 2200",
-                "user": "operador_sur",
-                "pass": "SurAccess24",
-                "system_adm": "root_sur",
-                "system_adm_pass": "RootSur#1"
-            },
-            {
-                "id": 3,
-                "empresa": "Frisertec HQ",
-                "nombre_sitio": "Monitor Central",
-                "url": "#",
-                "provincia": "RM",
-                "ciudad": "Santiago",
-                "direccion": "Oficina Central, Av. Providencia 999",
-                "user": "friser_main",
-                "pass": "HQ_Secure_2026",
-                "system_adm": "hq_master",
-                "system_adm_pass": "MasterKey_HQ"
-            },
-            {
-                "id": 4,
-                "empresa": "Cliente Externo A",
-                "nombre_sitio": "Gateway Remoto",
-                "url": "#",
-                "provincia": "Valparaíso",
-                "ciudad": "Viña del Mar",
-                "direccion": "Av. San Martín 450",
-                "user": "guest_user",
-                "pass": "TempPass123",
-                "system_adm": "ext_admin_a",
-                "system_adm_pass": "AdminExt_A"
-            },
-             {
-                "id": 5,
-                "empresa": "Planta Norte",
-                "nombre_sitio": "SCADA Web View",
-                "url": "#",
-                "provincia": "II Región",
-                "ciudad": "Antofagasta",
-                "direccion": "Av. Grecia 3100",
-                "user": "planta_norte",
-                "pass": "Norte2026X",
-                "system_adm": "norte_sys",
-                "system_adm_pass": "AdminNorte!"
-            }
+        // ================== DATOS: PROVINCIAS DE ECUADOR ==================
+        const ECUADOR_PROVINCES = [
+            "Guayas", "Azuay", "Bolívar", "Cañar", "Carchi", "Chimborazo", "Cotopaxi",
+            "El Oro", "Esmeraldas", "Galápagos", "Imbabura", "Loja", "Los Ríos",
+            "Manabí", "Morona Santiago", "Napo", "Orellana", "Pastaza", "Pichincha",
+            "Santa Elena", "Santo Domingo de los Tsáchilas", "Sucumbíos",
+            "Tungurahua", "Zamora Chinchipe"
         ];
 
-        const ADMIN_MASTER_PASS = "admin1!"; 
+        // ================== DATOS: LOCALES / ACCESOS (placeholder) ==================
+        const ACCESS_DATA = [
+            { id: 1, empresa: "Cremasoda", nombre_sitio: "Boss Cremasoda", url: "https://186.101.233.174/boss/", provincia: "Guayas", ciudad: "Guayaquil", direccion: "Av. Sufragio Libre 456", user: "admin_carel", pass: "Friser2026!", system_adm: "sys_admin_ec", system_adm_pass: "SuperAdmin99" },
+            { id: 2, empresa: "Piady", nombre_sitio: "Boss Piady", url: "https://181.198.245.131/boss/", provincia: "Guayas", ciudad: "Guayaquil", direccion: "Duran", user: "friser_main", pass: "HQ_Secure_2026", system_adm: "hq_master", system_adm_pass: "MasterKey_HQ" },
+            { id: 3, empresa: "Cliente Norte", nombre_sitio: "Nodo Samborondón", url: "#", provincia: "Guayas", ciudad: "Samborondón", direccion: "Vía Samborondón Km 2.5", user: "operador_sam", pass: "SamAccess24", system_adm: "root_sam", system_adm_pass: "RootSam#1" },
+            { id: 4, empresa: "Carel Sierra", nombre_sitio: "Nodo Quito Norte", url: "https://186.101.233.174/boss/", provincia: "Pichincha", ciudad: "Quito", direccion: "Av. Amazonas N34-120", user: "operador_uio", pass: "QuitoAccess24", system_adm: "root_uio", system_adm_pass: "RootUio#1" },
+            { id: 5, empresa: "Cliente Manabí", nombre_sitio: "Gateway Manta", url: "#", provincia: "Manabí", ciudad: "Manta", direccion: "Av. Flavio Reyes 320", user: "guest_manta", pass: "TempPass123", system_adm: "ext_admin_manta", system_adm_pass: "AdminExt_M" },
+            { id: 6, empresa: "Planta Austro", nombre_sitio: "SCADA Web View", url: "#", provincia: "Azuay", ciudad: "Cuenca", direccion: "Av. Solano 210", user: "planta_cuenca", pass: "Cuenca2026X", system_adm: "cuenca_sys", system_adm_pass: "AdminCuenca!" },
+            { id: 7, empresa: "Cliente El Oro", nombre_sitio: "Nodo Machala", url: "#", provincia: "El Oro", ciudad: "Machala", direccion: "Av. Bolívar Madero Vargas 88", user: "operador_mach", pass: "MachAccess24", system_adm: "root_mach", system_adm_pass: "RootMach#1" },
+        ];
+        const ADMIN_MASTER_PASS = "admin";
 
-        // --- STATE MANAGEMENT ---
+        // ================== DATOS: PERSONAL ==================
+        const PERSONNEL = [
+            { id: "A", nombre: "Persona A" },
+            { id: "B", nombre: "Persona B" },
+            { id: "C", nombre: "Persona C" },
+            { id: "D", nombre: "Persona D" },
+            { id: "E", nombre: "Persona E" },
+        ];
+
+        // ================== ESTADO ==================
         let isAdminLoggedIn = false;
+        let selectedProvincia = 'Guayas';
+        let selectedLocalId = null;
+        let currentImages = [];
+        let selectedPersonnel = [];
+        const REPORTS_KEY = 'frisertec_reportes_v2';
 
-        // --- DOM ELEMENTS ---
         const gridContainer = document.getElementById('links-grid');
         const searchInput = document.getElementById('search-input');
         const emptyState = document.getElementById('empty-state');
@@ -351,15 +414,17 @@
         const loginError = document.getElementById('login-error');
         const themeToggle = document.getElementById('theme-toggle');
         const adminBtnText = document.getElementById('admin-btn-text');
-        const toast = document.getElementById('toast');
 
-        // --- INITIALIZATION ---
+        // ================== INIT ==================
         document.addEventListener('DOMContentLoaded', () => {
-            renderCards(ACCESS_DATA);
             initTheme();
+            renderProvinceSidebar();
+            renderCards(getLocalesByProvincia(selectedProvincia));
+            seedReportsIfEmpty();
+            updateAdminUI();
         });
 
-        // --- THEME LOGIC ---
+        // ================== THEME ==================
         function initTheme() {
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
@@ -367,69 +432,57 @@
                 document.documentElement.classList.remove('dark');
             }
         }
-
         themeToggle.addEventListener('click', () => {
             document.documentElement.classList.toggle('dark');
             localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
         });
 
-        // --- RENDER LOGIC ---
+        // ================== SIDEBAR PROVINCIAS ==================
+        function renderProvinceSidebar() {
+            const container = document.getElementById('province-list');
+            container.innerHTML = '';
+            ECUADOR_PROVINCES.forEach(prov => {
+                const count = getLocalesByProvincia(prov).length;
+                const btn = document.createElement('button');
+                btn.className = `prov-item w-full text-left px-3.5 py-2.5 rounded-xl text-sm font-medium flex items-center justify-between gap-2 text-slate-700 dark:text-slate-200 ${prov === selectedProvincia ? 'active' : ''}`;
+                btn.onclick = () => selectProvincia(prov);
+                btn.innerHTML = `
+                    <span class="flex items-center gap-2 min-w-0"><i class="fas fa-map-pin text-xs opacity-70"></i><span class="truncate">${prov}</span></span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${prov === selectedProvincia ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-800'}">${count}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectProvincia(prov) {
+            selectedProvincia = prov;
+            document.getElementById('current-province-title').textContent = prov;
+            searchInput.value = '';
+            backToLocales(false);
+            renderCards(getLocalesByProvincia(prov));
+            renderProvinceSidebar();
+            closeSidebar();
+        }
+
+        function getLocalesByProvincia(prov) { return ACCESS_DATA.filter(item => item.provincia === prov); }
+        function getLocalById(id) { return ACCESS_DATA.find(item => item.id === Number(id)); }
+
+        function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.remove('hidden'); }
+        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.add('hidden'); }
+
+        // ================== RENDER LOCALES (GRID) ==================
         function renderCards(data) {
             gridContainer.innerHTML = '';
-            
-            if (data.length === 0) {
-                emptyState.classList.remove('hidden');
-                return;
-            } else {
-                emptyState.classList.add('hidden');
-            }
+            if (data.length === 0) { emptyState.classList.remove('hidden'); return; }
+            emptyState.classList.add('hidden');
 
             data.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'card-modern rounded-2xl overflow-hidden flex flex-col h-full animate-slide-up';
-                card.style.animationDelay = `${index * 50}ms`;
-                
-                // Determine icon based on URL or generic
+                const reportCount = loadReports().filter(r => r.local_id === item.id).length;
                 const iconClass = item.url.includes('boss') ? 'fa-server' : 'fa-network-wired';
-
-                // Credentials Section (Only visible if Admin Logged In)
-                const credentialsHtml = isAdminLoggedIn ? `
-                    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl text-sm">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="font-bold text-slate-700 dark:text-slate-200 text-xs uppercase tracking-wider">Credenciales de Acceso</span>
-                            <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full dark:bg-green-900/50 dark:text-green-400 font-semibold border border-green-200 dark:border-green-800">VISIBLE</span>
-                        </div>
-                        
-                        <!-- User / Pass Block -->
-                        <div class="mb-3">
-                            <p class="text-[10px] font-bold text-brand-600 dark:text-brand-400 mb-1.5 uppercase flex items-center gap-1">
-                                <i class="fas fa-user"></i> Usuario Estándar
-                            </p>
-                            <div class="space-y-1.5">
-                                ${createCredentialRow('User', item.user)}
-                                ${createCredentialRow('Pass', item.pass)}
-                            </div>
-                        </div>
-
-                        <!-- System Admin Block -->
-                        <div>
-                            <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 mb-1.5 uppercase flex items-center gap-1">
-                                <i class="fas fa-user-cog"></i> System Admin
-                            </p>
-                            <div class="space-y-1.5">
-                                ${createCredentialRow('Sys Adm', item.system_adm)}
-                                ${createCredentialRow('Sys Pass', item.system_adm_pass, true)}
-                            </div>
-                        </div>
-                    </div>
-                ` : `
-                    <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-center items-center py-2">
-                         <button onclick="toggleAdminMode()" class="text-xs text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors flex items-center gap-1">
-                            <i class="fas fa-lock"></i> Ver Credenciales (Requiere Admin)
-                         </button>
-                    </div>
-                `;
-
+                const card = document.createElement('div');
+                card.className = 'card-modern rounded-2xl overflow-hidden flex flex-col h-full animate-slide-up cursor-pointer';
+                card.style.animationDelay = `${index * 50}ms`;
+                card.onclick = () => openLocalDetail(item.id);
                 card.innerHTML = `
                     <div class="p-6 flex-grow relative">
                         <div class="flex items-start gap-4 mb-4">
@@ -441,128 +494,538 @@
                                 <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wide mt-0.5">${item.empresa}</p>
                             </div>
                         </div>
-
-                        <!-- Location Block -->
-                        <div class="flex items-start gap-2 mb-5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-start gap-2 mb-4 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
                             <i class="fas fa-map-marker-alt text-brand-500 mt-0.5"></i>
                             <div class="leading-snug">
-                                <span class="font-semibold text-slate-600 dark:text-slate-300">${item.ciudad}, ${item.provincia}</span>
-                                <br>
+                                <span class="font-semibold text-slate-600 dark:text-slate-300">${item.ciudad}, ${item.provincia}</span><br>
                                 <span>${item.direccion}</span>
                             </div>
                         </div>
-                        
-                        <div class="mb-6">
-                            <p class="text-sm text-slate-600 dark:text-slate-300 truncate font-mono bg-slate-50 dark:bg-slate-900/50 p-2 rounded border border-slate-100 dark:border-slate-800" title="${item.url}">
-                                <i class="fas fa-link text-xs mr-2 text-slate-400"></i>${item.url.replace(/^https?:\/\//, '')}
-                            </p>
+                        <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                            <span class="font-mono truncate max-w-[65%]"><i class="fas fa-link mr-1 text-slate-400"></i>${item.url.replace(/^https?:\/\//, '')}</span>
+                            <span class="font-semibold text-brand-600 dark:text-brand-400"><i class="fas fa-clipboard-list mr-1"></i>${reportCount} reporte${reportCount === 1 ? '' : 's'}</span>
                         </div>
-
-                        ${credentialsHtml}
                     </div>
-                    
-                    <div class="px-6 pb-6 pt-2 mt-auto">
-                        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="group relative w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold py-3 rounded-xl transition-all hover:shadow-lg hover:shadow-brand-500/20 active:scale-95 overflow-hidden">
-                            <span class="relative z-10">Acceder al Sitio</span>
-                            <i class="fas fa-arrow-right relative z-10 transform group-hover:translate-x-1 transition-transform"></i>
-                            <div class="absolute inset-0 bg-gradient-to-r from-brand-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </a>
-                    </div>
+                  
                 `;
                 gridContainer.appendChild(card);
             });
         }
 
-        // Helper to create credential rows
         function createCredentialRow(label, value, isSensitive = false) {
             return `
-                <div class="credential-row flex justify-between items-center p-2 rounded cursor-pointer group" onclick="copyToClipboard('${value}')">
+                <div class="credential-row flex justify-between items-center p-2 rounded cursor-pointer group" onclick="event.stopPropagation(); copyToClipboard('${value}')">
                     <span class="text-slate-500 dark:text-slate-400 text-xs font-medium w-16">${label}:</span>
                     <div class="flex items-center gap-2 flex-1 justify-end">
-                        <span class="font-mono text-slate-800 dark:text-slate-200 text-xs truncate max-w-[120px] ${isSensitive ? 'text-red-600 dark:text-red-400' : ''}">${value}</span>
+                        <span class="font-mono text-slate-800 dark:text-slate-200 text-xs truncate max-w-[140px] ${isSensitive ? 'text-red-600 dark:text-red-400' : ''}">${value}</span>
                         <i class="far fa-copy text-slate-300 dark:text-slate-600 group-hover:text-brand-500 transition-colors text-xs"></i>
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
-        // --- SEARCH LOGIC ---
         searchInput.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
-            const filtered = ACCESS_DATA.filter(item => 
-                item.empresa.toLowerCase().includes(term) || 
+            const base = getLocalesByProvincia(selectedProvincia);
+            const filtered = base.filter(item =>
+                item.empresa.toLowerCase().includes(term) ||
                 item.nombre_sitio.toLowerCase().includes(term) ||
                 item.ciudad.toLowerCase().includes(term) ||
-                item.provincia.toLowerCase().includes(term) ||
-                item.direccion.toLowerCase().includes(term) ||
-                item.url.toLowerCase().includes(term)
+                item.direccion.toLowerCase().includes(term)
             );
             renderCards(filtered);
         });
 
-        // --- ADMIN MODAL LOGIC ---
+        // ================== VISTA DETALLE DE LOCAL ==================
+        function openLocalDetail(id) {
+            selectedLocalId = Number(id);
+            const item = getLocalById(selectedLocalId);
+            if (!item) return;
+            document.getElementById('view-locales').classList.add('hidden');
+            document.getElementById('view-local-detail').classList.remove('hidden');
+            document.getElementById('back-province-name').textContent = selectedProvincia;
+            renderLocalDetailCard(item);
+            document.getElementById('report-search').value = '';
+            document.getElementById('report-filter-tipo').value = '';
+            updateAdminUI();
+            renderReports();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function backToLocales(scroll = true) {
+            selectedLocalId = null;
+            document.getElementById('view-local-detail').classList.add('hidden');
+            document.getElementById('view-locales').classList.remove('hidden');
+            if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderLocalDetailCard(item) {
+            const iconClass = item.url.includes('boss') ? 'fa-server' : 'fa-network-wired';
+            const credentialsHtml = isAdminLoggedIn ? `
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 p-4 rounded-xl text-sm">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="font-bold text-slate-700 dark:text-slate-200 text-xs uppercase tracking-wider">Credenciales de Acceso</span>
+                        <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full dark:bg-green-900/50 dark:text-green-400 font-semibold border border-green-200 dark:border-green-800">VISIBLE</span>
+                    </div>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-[10px] font-bold text-brand-600 dark:text-brand-400 mb-1.5 uppercase flex items-center gap-1"><i class="fas fa-user"></i> Usuario Estándar</p>
+                            <div class="space-y-1.5">${createCredentialRow('User', item.user)}${createCredentialRow('Pass', item.pass)}</div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-purple-600 dark:text-purple-400 mb-1.5 uppercase flex items-center gap-1"><i class="fas fa-user-cog"></i> System Admin</p>
+                            <div class="space-y-1.5">${createCredentialRow('Sys Adm', item.system_adm)}${createCredentialRow('Sys Pass', item.system_adm_pass, true)}</div>
+                        </div>
+                    </div>
+                </div>
+            ` : `
+                <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-center items-center py-2">
+                     <button onclick="toggleAdminMode()" class="text-xs text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors flex items-center gap-1"><i class="fas fa-lock"></i> Ver Credenciales (Requiere Admin)</button>
+                </div>
+            `;
+
+            document.getElementById('local-detail-card').innerHTML = `
+                <div class="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
+                    <div class="w-14 h-14 shrink-0 rounded-xl bg-gradient-to-br from-brand-50 to-indigo-50 dark:from-brand-900/20 dark:to-indigo-900/20 flex items-center justify-center text-brand-600 dark:text-brand-400 shadow-sm border border-brand-100 dark:border-brand-900/30">
+                        <i class="fas ${iconClass} text-2xl"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h2 class="font-bold text-xl text-slate-900 dark:text-white">${item.nombre_sitio}</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wide mb-3">${item.empresa}</p>
+                        <div class="flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 mb-4 max-w-md">
+                            <i class="fas fa-map-marker-alt text-brand-500 mt-0.5"></i>
+                            <div class="leading-snug"><span class="font-semibold text-slate-600 dark:text-slate-300">${item.ciudad}, ${item.provincia}</span><br><span>${item.direccion}</span></div>
+                        </div>
+                        <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold text-sm px-5 py-2.5 rounded-xl transition-all hover:shadow-lg active:scale-95">
+                            <i class="fas fa-arrow-up-right-from-square"></i> Acceder al Sitio
+                        </a>
+                    </div>
+                </div>
+                ${credentialsHtml}
+            `;
+        }
+
+        // ================== ADMIN MODAL ==================
+        function updateAdminUI() {
+            const btnNew = document.getElementById('btn-nuevo-reporte');
+            if (btnNew) {
+                if (isAdminLoggedIn) btnNew.classList.remove('hidden');
+                else btnNew.classList.add('hidden');
+            }
+            if (selectedLocalId) renderReports();
+        }
         function toggleAdminMode() {
             if (isAdminLoggedIn) {
                 isAdminLoggedIn = false;
                 adminBtnText.textContent = "Admin Login";
-                renderCards(ACCESS_DATA);
+                renderCards(getLocalesByProvincia(selectedProvincia));
+                if (selectedLocalId) renderLocalDetailCard(getLocalById(selectedLocalId));
+                updateAdminUI();
                 showToast("Sesión de administrador cerrada");
                 return;
             }
             openAdminModal();
         }
-
-        function openAdminModal() {
-            loginModal.classList.remove('hidden');
-            passwordInput.value = '';
-            loginError.classList.add('hidden');
-            setTimeout(() => passwordInput.focus(), 100);
-        }
-
-        function closeAdminModal() {
-            loginModal.classList.add('hidden');
-        }
-
+        function openAdminModal() { loginModal.classList.remove('hidden'); passwordInput.value = ''; loginError.classList.add('hidden'); setTimeout(() => passwordInput.focus(), 100); }
+        function closeAdminModal() { loginModal.classList.add('hidden'); }
         function attemptLogin() {
-            const inputPass = passwordInput.value;
-            if (inputPass === ADMIN_MASTER_PASS) {
+            if (passwordInput.value === ADMIN_MASTER_PASS) {
                 isAdminLoggedIn = true;
                 adminBtnText.textContent = "Logout Admin";
                 closeAdminModal();
-                renderCards(ACCESS_DATA);
+                renderCards(getLocalesByProvincia(selectedProvincia));
+                if (selectedLocalId) renderLocalDetailCard(getLocalById(selectedLocalId));
+                updateAdminUI();
                 showToast("Acceso Admin Concedido");
             } else {
                 loginError.classList.remove('hidden');
                 passwordInput.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-                setTimeout(() => {
-                    passwordInput.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
-                }, 2000);
+                setTimeout(() => passwordInput.classList.remove('border-red-500', 'ring-1', 'ring-red-500'), 2000);
             }
         }
+        passwordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') attemptLogin(); });
 
-        passwordInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') attemptLogin();
-        });
-
-        // --- UTILITIES ---
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast("Copiado al portapapeles");
-            }).catch(err => {
-                console.error('Failed to copy: ', err);
-            });
-        }
-
+        // ================== UTILIDADES ==================
+        function copyToClipboard(text) { navigator.clipboard.writeText(text).then(() => showToast("Copiado al portapapeles")).catch(err => console.error(err)); }
         function showToast(message) {
             const toastEl = document.getElementById('toast');
             toastEl.querySelector('span').textContent = message;
             toastEl.classList.remove('translate-y-20', 'opacity-0');
-            
-            setTimeout(() => {
-                toastEl.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+            setTimeout(() => toastEl.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
 
+        // ============================================================
+        // ==================== HORA (input nativo + display 12h) =======
+        // ============================================================
+        // Guarda/muestra en 12h AM/PM; el input type="time" usa 24h internamente.
+        function to24h(value12) {
+            if (!value12) return '';
+            const m = value12.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+            if (!m) {
+                // Ya en 24h HH:MM
+                if (/^\d{1,2}:\d{2}$/.test(value12)) return value12.padStart(5, '0');
+                return '';
+            }
+            let h = parseInt(m[1], 10);
+            const min = m[2];
+            const ap = m[3].toUpperCase();
+            if (ap === 'AM') { if (h === 12) h = 0; }
+            else { if (h !== 12) h += 12; }
+            return `${String(h).padStart(2, '0')}:${min}`;
+        }
+        function to12h(value24) {
+            if (!value24) return '';
+            const parts = value24.split(':');
+            if (parts.length < 2) return value24;
+            let h = parseInt(parts[0], 10);
+            const min = parts[1];
+            const ap = h >= 12 ? 'PM' : 'AM';
+            h = h % 12;
+            if (h === 0) h = 12;
+            return `${String(h).padStart(2, '0')}:${min} ${ap}`;
+        }
+        function getTimeString(prefix) {
+            const el = document.getElementById(`${prefix}-time`);
+            if (!el || !el.value) return '';
+            return to12h(el.value);
+        }
+        function setTimeString(prefix, value) {
+            const el = document.getElementById(`${prefix}-time`);
+            if (!el) return;
+            el.value = to24h(value || '');
+        }
+
+        // ============================================================
+        // ==================== MÓDULO DE REPORTES (por local) ========
+        // ============================================================
+
+        function loadReports() { try { return JSON.parse(localStorage.getItem(REPORTS_KEY)) || []; } catch (e) { return []; } }
+        function saveReportsToStorage(reports) {
+            try { localStorage.setItem(REPORTS_KEY, JSON.stringify(reports)); return true; }
+            catch (e) { showToast("Error: almacenamiento lleno (imágenes muy pesadas)"); return false; }
+        }
+
+        function seedReportsIfEmpty() {
+            if (loadReports().length > 0) return;
+            const seed = [
+                {
+                    id: cryptoId(), local_id: 1, codigo: generateCodigo(),
+                    tipo: 'mantenimiento', fecha: new Date().toISOString().slice(0, 10),
+                    hora_entrada: '09:00 AM', hora_salida: '11:30 AM',
+                    problema: 'Revisión preventiva del controlador Carel; se detectó sensor de temperatura con lectura inestable.',
+                    reparacion: 'Se recalibró el sensor y se ajustaron las conexiones eléctricas sueltas.',
+                    implementos: 'Multímetro, notebook de configuración, guantes dieléctricos',
+                    personal: ['A', 'B'],
+                    imagenes: [],
+                    creado_en: new Date().toISOString(),
+                }
+            ];
+            saveReportsToStorage(seed);
+        }
+
+        function cryptoId() { return 'r_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8); }
+        function generateCodigo() {
+            const d = new Date();
+            const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+            const n = String(loadReports().length + 1).padStart(3, '0');
+            return `REP-${ymd}-${n}`;
+        }
+
+        // --- Dropdown de personal ---
+        function togglePersonnelDropdown() {
+            document.getElementById('personnel-dropdown-panel').classList.toggle('hidden');
+        }
+        function renderPersonnelDropdown() {
+            const panel = document.getElementById('personnel-dropdown-panel');
+            panel.innerHTML = PERSONNEL.map(p => `
+                <label class="flex items-center gap-2 px-2 py-2 rounded-lg text-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/40">
+                    <input type="checkbox" value="${p.id}" class="personnel-check accent-brand-600 w-4 h-4" ${selectedPersonnel.includes(p.id) ? 'checked' : ''} onchange="onPersonnelCheck('${p.id}', this.checked)">
+                    <span>${p.nombre}</span>
+                </label>
+            `).join('');
+            updatePersonnelLabel();
+        }
+        function onPersonnelCheck(id, checked) {
+            if (checked && !selectedPersonnel.includes(id)) selectedPersonnel.push(id);
+            if (!checked) selectedPersonnel = selectedPersonnel.filter(x => x !== id);
+            updatePersonnelLabel();
+        }
+        function updatePersonnelLabel() {
+            const label = document.getElementById('personnel-dropdown-label');
+            if (selectedPersonnel.length === 0) { label.textContent = 'Seleccionar personal...'; label.classList.add('text-slate-400'); return; }
+            label.classList.remove('text-slate-400');
+            label.textContent = selectedPersonnel.map(id => PERSONNEL.find(p => p.id === id)?.nombre).join(', ');
+        }
+        document.addEventListener('click', (e) => {
+            const btn = document.getElementById('personnel-dropdown-btn');
+            const panel = document.getElementById('personnel-dropdown-panel');
+            if (!btn || !panel) return;
+            if (!btn.contains(e.target) && !panel.contains(e.target)) panel.classList.add('hidden');
+        });
+
+        // --- Imágenes: se guarda el dataURL original (sin canvas), preservando metadata/EXIF ---
+        function handleImageUpload(event) {
+            const files = Array.from(event.target.files || []);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const imgObj = { name: file.name, dataUrl: e.target.result, size: file.size, lastModified: file.lastModified, exif: null };
+                    try {
+                        if (window.EXIF) {
+                            EXIF.getData(file, function () {
+                                const dateTaken = EXIF.getTag(this, 'DateTimeOriginal');
+                                const gpsLat = EXIF.getTag(this, 'GPSLatitude');
+                                const gpsLon = EXIF.getTag(this, 'GPSLongitude');
+                                imgObj.exif = { fecha_captura: dateTaken || null, gps_lat: gpsLat ? gpsLat.join(',') : null, gps_lon: gpsLon ? gpsLon.join(',') : null };
+                            });
+                        }
+                    } catch (err) { /* EXIF no disponible, se ignora */ }
+                    currentImages.push(imgObj);
+                    renderImagePreviews();
+                };
+                reader.readAsDataURL(file);
+            });
+            event.target.value = '';
+        }
+        function renderImagePreviews() {
+            const container = document.getElementById('image-preview');
+            container.innerHTML = currentImages.map((img, idx) => `
+                <div class="relative group">
+                    <img src="${img.dataUrl}" class="thumb border border-slate-200 dark:border-slate-700">
+                    <button type="button" onclick="removeImage(${idx})" class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-times"></i></button>
+                </div>
+            `).join('');
+        }
+        function removeImage(idx) { currentImages.splice(idx, 1); renderImagePreviews(); }
+
+        // --- Abrir modal (crear o editar) ---
+        function openReportModal(id = null) {
+            if (!isAdminLoggedIn) { showToast('Inicia sesión de Admin para crear o editar reportes'); return; }
+            const local = getLocalById(selectedLocalId);
+            if (!local) return;
+            document.getElementById('report-form').reset();
+            currentImages = [];
+            selectedPersonnel = [];
+            renderImagePreviews();
+            renderPersonnelDropdown();
+            document.getElementById('personnel-dropdown-panel').classList.add('hidden');
+            document.getElementById('report-modal-local').textContent = `${local.nombre_sitio} — ${local.ciudad}, ${local.provincia}`;
+            document.getElementById('report-local-id').value = local.id;
+
+            if (id) {
+                const r = loadReports().find(x => x.id === id);
+                if (!r) return;
+                document.getElementById('report-modal-title').textContent = 'Editar Reporte';
+                document.getElementById('report-id').value = r.id;
+                document.getElementById('report-codigo').value = r.codigo;
+                document.getElementById('report-tipo').value = r.tipo;
+                document.getElementById('report-fecha').value = r.fecha || '';
+                setTimeString('entrada', r.hora_entrada);
+                setTimeString('salida', r.hora_salida);
+                document.getElementById('report-problema').value = r.problema || '';
+                document.getElementById('report-reparacion').value = r.reparacion || '';
+                document.getElementById('report-implementos').value = r.implementos || '';
+                selectedPersonnel = [...(r.personal || [])];
+                renderPersonnelDropdown();
+                currentImages = JSON.parse(JSON.stringify(r.imagenes || []));
+                renderImagePreviews();
+            } else {
+                document.getElementById('report-modal-title').textContent = 'Nuevo Reporte';
+                document.getElementById('report-id').value = '';
+                document.getElementById('report-codigo').value = generateCodigo();
+                document.getElementById('report-fecha').value = new Date().toISOString().slice(0, 10);
+                setTimeString('entrada', '08:00 AM');
+                setTimeString('salida', '05:00 PM');
+            }
+            document.getElementById('report-modal').classList.remove('hidden');
+        }
+        function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
+
+        function saveReport() {
+            const id = document.getElementById('report-id').value;
+            const localId = Number(document.getElementById('report-local-id').value);
+
+            const data = {
+                id: id || cryptoId(),
+                local_id: localId,
+                codigo: document.getElementById('report-codigo').value,
+                tipo: document.getElementById('report-tipo').value,
+                fecha: document.getElementById('report-fecha').value,
+                hora_entrada: getTimeString('entrada'),
+                hora_salida: getTimeString('salida'),
+                problema: document.getElementById('report-problema').value.trim(),
+                reparacion: document.getElementById('report-reparacion').value.trim(),
+                implementos: document.getElementById('report-implementos').value.trim(),
+                personal: [...selectedPersonnel],
+                imagenes: currentImages,
+                creado_en: new Date().toISOString(),
+            };
+
+            if (!data.fecha) { showToast("Completa al menos la fecha"); return; }
+
+            let reports = loadReports();
+            if (id) reports = reports.map(r => r.id === id ? data : r);
+            else reports.push(data);
+
+            const ok = saveReportsToStorage(reports);
+            if (ok) {
+                closeReportModal();
+                renderReports();
+                renderCards(getLocalesByProvincia(selectedProvincia));
+                showToast(id ? "Reporte actualizado" : "Reporte creado");
+            }
+        }
+
+        function deleteReport(id) {
+            if (!isAdminLoggedIn) { showToast('Inicia sesión de Admin para eliminar reportes'); return; }
+            if (!confirm("¿Eliminar este reporte? Esta acción no se puede deshacer.")) return;
+            saveReportsToStorage(loadReports().filter(r => r.id !== id));
+            renderReports();
+            renderCards(getLocalesByProvincia(selectedProvincia));
+            showToast("Reporte eliminado");
+        }
+
+        function renderReports() {
+            const grid = document.getElementById('reports-grid');
+            const emptyEl = document.getElementById('reports-empty-state');
+            if (!selectedLocalId) return;
+            const term = (document.getElementById('report-search').value || '').toLowerCase();
+            const tipoFilter = document.getElementById('report-filter-tipo').value;
+
+            let reports = loadReports()
+                .filter(r => r.local_id === selectedLocalId)
+                .sort((a, b) => (b.creado_en || '').localeCompare(a.creado_en || ''));
+
+            reports = reports.filter(r =>
+                (!tipoFilter || r.tipo === tipoFilter) &&
+                (!term || r.codigo.toLowerCase().includes(term) || (r.problema || '').toLowerCase().includes(term) || (r.reparacion || '').toLowerCase().includes(term))
+            );
+
+            grid.innerHTML = '';
+            if (reports.length === 0) { emptyEl.classList.remove('hidden'); return; }
+            emptyEl.classList.add('hidden');
+
+            reports.forEach((r, idx) => {
+                const personNames = (r.personal || []).map(pid => PERSONNEL.find(p => p.id === pid)?.nombre || pid).join(', ') || 'Sin asignar';
+                const badgeColor = r.tipo === 'emergencia' ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300 border-red-200 dark:border-red-800' : 'bg-brand-100 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300 border-brand-200 dark:border-brand-800';
+
+                const card = document.createElement('div');
+                card.className = 'card-modern rounded-2xl overflow-hidden flex flex-col h-full animate-slide-up p-5';
+                card.style.animationDelay = `${idx * 40}ms`;
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-2 mb-3">
+                        <span class="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">${r.codigo}</span>
+                        <span class="text-[10px] font-bold px-2 py-1 rounded-full border uppercase ${badgeColor}">${r.tipo}</span>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 mb-1"><span class="font-semibold text-slate-800 dark:text-slate-100">Problema:</span> ${r.problema || '—'}</p>
+                    <p class="text-sm text-slate-600 dark:text-slate-300 line-clamp-2 mb-4"><span class="font-semibold text-slate-800 dark:text-slate-100">Reparación:</span> ${r.reparacion || '—'}</p>
+                    <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mb-2">
+                        <span><i class="far fa-calendar mr-1"></i>${r.fecha || '—'}</span>
+                        <span><i class="far fa-clock mr-1"></i>${r.hora_entrada || '--'} - ${r.hora_salida || '--'}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mb-4"><i class="fas fa-users mr-1"></i>${personNames}</p>
+                    <div class="mt-auto flex gap-2 pt-3 border-t border-slate-100 dark:border-slate-700">
+                        <button onclick="openDetailModal('${r.id}')" class="flex-1 text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"><i class="fas fa-eye mr-1"></i>Ver</button>
+                        ${isAdminLoggedIn ? `
+                        <button onclick="openReportModal('${r.id}')" class="flex-1 text-xs font-semibold px-3 py-2 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 hover:bg-brand-100 dark:hover:bg-brand-900/50 transition-colors"><i class="fas fa-pen mr-1"></i>Editar</button>
+                        <button onclick="deleteReport('${r.id}')" class="text-xs font-semibold px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"><i class="fas fa-trash-alt"></i></button>
+                        ` : ''}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('report-search').addEventListener('input', renderReports);
+        document.getElementById('report-filter-tipo').addEventListener('change', renderReports);
+
+        let currentDetailReportId = null;
+
+        function openDetailModal(id) {
+            const r = loadReports().find(x => x.id === id);
+            if (!r) return;
+            currentDetailReportId = id;
+            const local = getLocalById(r.local_id);
+            const personNames = (r.personal || []).map(pid => PERSONNEL.find(p => p.id === pid)?.nombre || pid).join(', ') || 'Sin asignar';
+            const imagesHtml = (r.imagenes || []).map(img => `
+                <div class="flex flex-col items-center gap-1">
+                    <a href="${img.dataUrl}" download="${img.name}"><img src="${img.dataUrl}" class="thumb border border-slate-200 dark:border-slate-700"></a>
+                    ${img.exif && img.exif.fecha_captura ? `<span class="text-[10px] text-slate-400">${img.exif.fecha_captura}</span>` : ''}
+                </div>`).join('') || '<p class="text-slate-400 text-xs">Sin imágenes adjuntas</p>';
+
+            document.getElementById('report-detail-content').innerHTML = `
+                <div class="flex items-center justify-between">
+                    <span class="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">${r.codigo}</span>
+                    <span class="text-[10px] font-bold px-2 py-1 rounded-full border uppercase ${r.tipo === 'emergencia' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800' : 'bg-brand-100 text-brand-700 border-brand-200 dark:bg-brand-900/40 dark:text-brand-300 dark:border-brand-800'}">${r.tipo}</span>
+                </div>
+                <p class="text-slate-500 dark:text-slate-400 text-xs"><i class="fas fa-map-marker-alt mr-1 text-brand-500"></i>${local ? `${local.nombre_sitio} — ${local.ciudad}, ${local.provincia}` : 'Local no encontrado'}</p>
+
+                <div class="grid grid-cols-3 gap-3 text-xs">
+                    <div class="bg-slate-50 dark:bg-slate-900/40 rounded-lg p-3"><p class="text-slate-400 mb-1">Fecha</p><p class="font-semibold">${r.fecha || '—'}</p></div>
+                    <div class="bg-slate-50 dark:bg-slate-900/40 rounded-lg p-3"><p class="text-slate-400 mb-1">Entrada</p><p class="font-semibold">${r.hora_entrada || '—'}</p></div>
+                    <div class="bg-slate-50 dark:bg-slate-900/40 rounded-lg p-3"><p class="text-slate-400 mb-1">Salida</p><p class="font-semibold">${r.hora_salida || '—'}</p></div>
+                </div>
+
+                <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Personal</p><p class="text-slate-700 dark:text-slate-300">${personNames}</p></div>
+                <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Problema reportado</p><p class="text-slate-700 dark:text-slate-300">${r.problema || '—'}</p></div>
+                <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Reparación efectuada</p><p class="text-slate-700 dark:text-slate-300">${r.reparacion || '—'}</p></div>
+                <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Implementos utilizados</p><p class="text-slate-700 dark:text-slate-300">${r.implementos || '—'}</p></div>
+                <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">Imágenes</p><div class="flex flex-wrap gap-3">${imagesHtml}</div></div>
+            `;
+            document.getElementById('report-detail-modal').classList.remove('hidden');
+        }
+        function closeDetailModal() {
+            document.getElementById('report-detail-modal').classList.add('hidden');
+            currentDetailReportId = null;
+        }
+
+        function downloadReportPdf() {
+            const r = loadReports().find(x => x.id === currentDetailReportId);
+            if (!r) { showToast('No hay reporte para exportar'); return; }
+            const local = getLocalById(r.local_id);
+            const personNames = (r.personal || []).map(pid => PERSONNEL.find(p => p.id === pid)?.nombre || pid).join(', ') || 'Sin asignar';
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+            const margin = 18;
+            let y = 20;
+            const line = (txt, size = 11, style = 'normal') => {
+                doc.setFont('helvetica', style);
+                doc.setFontSize(size);
+                const lines = doc.splitTextToSize(String(txt || '—'), 210 - margin * 2);
+                doc.text(lines, margin, y);
+                y += lines.length * (size * 0.4) + 3;
+            };
+
+            doc.setFillColor(2, 132, 199);
+            doc.rect(0, 0, 210, 14, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.text('Frisertec — Reporte de Servicio', margin, 9.5);
+            doc.setTextColor(30, 41, 59);
+
+            y = 24;
+            line(`Código: ${r.codigo}`, 12, 'bold');
+            line(`Tipo: ${(r.tipo || '').toUpperCase()}`, 11);
+            line(`Local: ${local ? `${local.nombre_sitio} — ${local.ciudad}, ${local.provincia}` : 'N/D'}`, 11);
+            line(`Fecha: ${r.fecha || '—'}   |   Entrada: ${r.hora_entrada || '—'}   |   Salida: ${r.hora_salida || '—'}`, 11);
+            y += 2;
+            line('Personal', 11, 'bold');
+            line(personNames, 10);
+            line('Problema reportado', 11, 'bold');
+            line(r.problema, 10);
+            line('Reparación efectuada', 11, 'bold');
+            line(r.reparacion, 10);
+            line('Implementos utilizados', 11, 'bold');
+            line(r.implementos, 10);
+
+            y = Math.max(y, 270);
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184);
+            doc.text('Generado por Frisertec Accesos · prototipo local', margin, 285);
+
+            doc.save(`${r.codigo || 'reporte'}.pdf`);
+            showToast('PDF descargado');
+        }
     </script>
 </body>
 </html>
