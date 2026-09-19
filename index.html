@@ -58,7 +58,11 @@
         .prov-item.active { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; }
         .prov-item:not(.active):hover { background: rgba(14,165,233,0.08); }
 
-        .thumb { width: 84px; height: 84px; object-fit: cover; border-radius: 10px; }
+        .thumb { width: 84px; height: 84px; object-fit: cover; border-radius: 10px; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+        .thumb:hover { transform: scale(1.04); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+
+        #lightbox { background: rgba(15, 23, 42, 0.92); }
+        #lightbox img { max-height: 85vh; max-width: 95vw; object-fit: contain; border-radius: 12px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
 
         @media (max-width: 1023px) {
             #sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 84%; max-width: 320px; z-index: 60; transform: translateX(-100%); transition: transform 0.25s ease; }
@@ -155,7 +159,7 @@
 
             <!-- ===================== VISTA: DETALLE DE UN LOCAL (ACCESO + HISTORIAL DE REPORTES) ===================== -->
             <div id="view-local-detail" class="hidden">
-                <button onclick="backToLocales()" class="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
+                <button onclick="navBackToLocales()" class="mb-5 flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition-colors">
                     <i class="fas fa-arrow-left"></i> Volver a locales de <span id="back-province-name">la provincia</span>
                 </button>
 
@@ -344,6 +348,13 @@
         </div>
     </div>
 
+    <!-- Lightbox de imágenes (solo ver, no descarga) -->
+    <div id="lightbox" class="fixed inset-0 z-[90] hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" onclick="closeLightbox(event)">
+        <button type="button" onclick="closeLightbox(true)" class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center text-lg transition-colors" aria-label="Cerrar"><i class="fas fa-times"></i></button>
+        <img id="lightbox-img" src="" alt="Vista ampliada" class="select-none" onclick="event.stopPropagation()">
+        <p id="lightbox-caption" class="absolute bottom-6 left-0 right-0 text-center text-white/80 text-sm px-4"></p>
+    </div>
+
     <!-- Toast -->
     <div id="toast" class="fixed bottom-5 right-5 left-5 sm:left-auto transform translate-y-20 opacity-0 transition-all duration-300 z-[80] bg-slate-800 dark:bg-white text-white dark:text-slate-900 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
         <i class="fas fa-check-circle text-green-400 dark:text-green-600"></i>
@@ -379,8 +390,8 @@
 
         // ================== DATOS: LOCALES / ACCESOS (placeholder) ==================
         const ACCESS_DATA = [
-            { id: 1, empresa: "Cremasoda", nombre_sitio: "Boss Cremasoda", url: "https://186.101.233.174/boss/", provincia: "Guayas", ciudad: "Guayaquil", direccion: "Av. Sufragio Libre 456", user: "admin_carel", pass: "Friser2026!", system_adm: "sys_admin_ec", system_adm_pass: "SuperAdmin99" },
-            { id: 2, empresa: "Piady", nombre_sitio: "Boss Piady", url: "https://181.198.245.131/boss/", provincia: "Guayas", ciudad: "Guayaquil", direccion: "Duran", user: "friser_main", pass: "HQ_Secure_2026", system_adm: "hq_master", system_adm_pass: "MasterKey_HQ" },
+            { id: 1, empresa: "Carel Ecuador", nombre_sitio: "Boss Cremasoda", url: "https://186.101.233.174/boss/", provincia: "Guayas", ciudad: "Guayaquil", direccion: "Av. Francisco de Orellana 1234", user: "admin_carel", pass: "Friser2026!", system_adm: "sys_admin_ec", system_adm_pass: "SuperAdmin99" },
+            { id: 2, empresa: "Frisertec HQ", nombre_sitio: "Boss Piady", url: "https://181.198.245.131/boss/", provincia: "Guayas", ciudad: "Guayaquil", direccion: "Av. Sufragio Libre 456", user: "friser_main", pass: "HQ_Secure_2026", system_adm: "hq_master", system_adm_pass: "MasterKey_HQ" },
             { id: 3, empresa: "Cliente Norte", nombre_sitio: "Nodo Samborondón", url: "#", provincia: "Guayas", ciudad: "Samborondón", direccion: "Vía Samborondón Km 2.5", user: "operador_sam", pass: "SamAccess24", system_adm: "root_sam", system_adm_pass: "RootSam#1" },
             { id: 4, empresa: "Carel Sierra", nombre_sitio: "Nodo Quito Norte", url: "https://186.101.233.174/boss/", provincia: "Pichincha", ciudad: "Quito", direccion: "Av. Amazonas N34-120", user: "operador_uio", pass: "QuitoAccess24", system_adm: "root_uio", system_adm_pass: "RootUio#1" },
             { id: 5, empresa: "Cliente Manabí", nombre_sitio: "Gateway Manta", url: "#", provincia: "Manabí", ciudad: "Manta", direccion: "Av. Flavio Reyes 320", user: "guest_manta", pass: "TempPass123", system_adm: "ext_admin_manta", system_adm_pass: "AdminExt_M" },
@@ -415,6 +426,73 @@
         const themeToggle = document.getElementById('theme-toggle');
         const adminBtnText = document.getElementById('admin-btn-text');
 
+        // ================== HISTORY (botón atrás móvil) ==================
+        let historyLock = false;
+        function pushAppState(state) {
+            if (historyLock) return;
+            const hash = state.view === 'local' && state.localId
+                ? `#local/${state.localId}`
+                : state.view === 'report-detail' && state.reportId
+                ? `#reporte/${state.reportId}`
+                : state.view === 'sidebar' ? '#provincias'
+                : state.view === 'report-form' ? '#formulario'
+                : '#locales';
+            history.pushState(state, '', hash);
+        }
+        function replaceAppState(state) {
+            history.replaceState(state, '', state.view === 'locales' ? '#locales' : location.hash || '#locales');
+        }
+        window.addEventListener('popstate', (e) => {
+            if (historyLock) return;
+            historyLock = true;
+            const s = e.state || { view: 'locales' };
+            // Cerrar overlays según el estado destino
+            const sidebarOpen = document.getElementById('sidebar').classList.contains('open');
+            const detailOpen = !document.getElementById('report-detail-modal').classList.contains('hidden');
+            const formOpen = !document.getElementById('report-modal').classList.contains('hidden');
+            const loginOpen = !document.getElementById('login-modal').classList.contains('hidden');
+            const lightOpen = !document.getElementById('lightbox').classList.contains('hidden');
+
+            if (lightOpen) closeLightbox(true, true);
+
+            if (s.view === 'sidebar') {
+                document.getElementById('sidebar').classList.add('open');
+                document.getElementById('sidebar-overlay').classList.remove('hidden');
+            } else if (sidebarOpen) {
+                closeSidebar(true);
+            }
+
+            if (s.view === 'report-detail' && s.reportId) {
+                if (s.localId && selectedLocalId !== Number(s.localId)) openLocalDetail(s.localId, true);
+                openDetailModal(s.reportId, true);
+            } else if (detailOpen) {
+                closeDetailModal(true);
+            }
+
+            if (s.view === 'report-form') {
+                if (s.localId && selectedLocalId !== Number(s.localId)) openLocalDetail(s.localId, true);
+                openReportModal(s.reportId || null, true);
+            } else if (formOpen) {
+                closeReportModal(true);
+            }
+
+            if (s.view === 'login') {
+                openAdminModal(true);
+            } else if (loginOpen) {
+                closeAdminModal(true);
+            }
+
+            if (s.view === 'local' && s.localId) {
+                if (selectedLocalId !== Number(s.localId) || document.getElementById('view-local-detail').classList.contains('hidden')) {
+                    openLocalDetail(s.localId, true);
+                }
+            } else if (s.view === 'locales' || !s.view) {
+                if (selectedLocalId) backToLocales(true, true);
+            }
+
+            historyLock = false;
+        });
+
         // ================== INIT ==================
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
@@ -422,7 +500,30 @@
             renderCards(getLocalesByProvincia(selectedProvincia));
             seedReportsIfEmpty();
             updateAdminUI();
+            replaceAppState({ view: 'locales' });
         });
+
+        // ================== LIGHTBOX ==================
+        function openLightbox(src, caption = '') {
+            const lb = document.getElementById('lightbox');
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox-caption').textContent = caption || '';
+            lb.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            pushAppState({ view: 'lightbox', localId: selectedLocalId, reportId: currentDetailReportId });
+        }
+        function closeLightbox(forceOrEvent, fromHistory = false) {
+            // forceOrEvent puede ser el event del click en el fondo, o true
+            if (forceOrEvent && forceOrEvent.target && forceOrEvent.target.id !== 'lightbox' && forceOrEvent !== true) return;
+            document.getElementById('lightbox').classList.add('hidden');
+            document.getElementById('lightbox-img').src = '';
+            document.body.style.overflow = '';
+            if (!fromHistory && !historyLock && history.state && history.state.view === 'lightbox') {
+                historyLock = true;
+                history.back();
+                setTimeout(() => { historyLock = false; }, 50);
+            }
+        }
 
         // ================== THEME ==================
         function initTheme() {
@@ -467,8 +568,20 @@
         function getLocalesByProvincia(prov) { return ACCESS_DATA.filter(item => item.provincia === prov); }
         function getLocalById(id) { return ACCESS_DATA.find(item => item.id === Number(id)); }
 
-        function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebar-overlay').classList.remove('hidden'); }
-        function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.add('hidden'); }
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebar-overlay').classList.remove('hidden');
+            pushAppState({ view: 'sidebar' });
+        }
+        function closeSidebar(fromHistory = false) {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebar-overlay').classList.add('hidden');
+            if (!fromHistory && !historyLock && history.state && history.state.view === 'sidebar') {
+                historyLock = true;
+                history.back();
+                setTimeout(() => { historyLock = false; }, 50);
+            }
+        }
 
         // ================== RENDER LOCALES (GRID) ==================
         function renderCards(data) {
@@ -506,7 +619,7 @@
                             <span class="font-semibold text-brand-600 dark:text-brand-400"><i class="fas fa-clipboard-list mr-1"></i>${reportCount} reporte${reportCount === 1 ? '' : 's'}</span>
                         </div>
                     </div>
-                  
+                   
                 `;
                 gridContainer.appendChild(card);
             });
@@ -536,7 +649,7 @@
         });
 
         // ================== VISTA DETALLE DE LOCAL ==================
-        function openLocalDetail(id) {
+        function openLocalDetail(id, fromHistory = false) {
             selectedLocalId = Number(id);
             const item = getLocalById(selectedLocalId);
             if (!item) return;
@@ -548,14 +661,29 @@
             document.getElementById('report-filter-tipo').value = '';
             updateAdminUI();
             renderReports();
+            if (!fromHistory) pushAppState({ view: 'local', localId: selectedLocalId });
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function backToLocales(scroll = true) {
+        function backToLocales(scroll = true, fromHistory = false) {
+            // Cerrar modals abiertos al salir del local
+            const detailOpen = !document.getElementById('report-detail-modal').classList.contains('hidden');
+            const formOpen = !document.getElementById('report-modal').classList.contains('hidden');
+            if (detailOpen) closeDetailModal(true);
+            if (formOpen) closeReportModal(true);
             selectedLocalId = null;
             document.getElementById('view-local-detail').classList.add('hidden');
             document.getElementById('view-locales').classList.remove('hidden');
+            if (!fromHistory) pushAppState({ view: 'locales' });
             if (scroll) window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        /** Botón UI "atrás": usa history.back si el estado previo es coherente */
+        function navBackToLocales() {
+            if (history.state && history.state.view === 'local') {
+                history.back();
+            } else {
+                backToLocales(true, false);
+            }
         }
 
         function renderLocalDetailCard(item) {
@@ -625,8 +753,21 @@
             }
             openAdminModal();
         }
-        function openAdminModal() { loginModal.classList.remove('hidden'); passwordInput.value = ''; loginError.classList.add('hidden'); setTimeout(() => passwordInput.focus(), 100); }
-        function closeAdminModal() { loginModal.classList.add('hidden'); }
+        function openAdminModal(fromHistory = false) {
+            loginModal.classList.remove('hidden');
+            passwordInput.value = '';
+            loginError.classList.add('hidden');
+            setTimeout(() => passwordInput.focus(), 100);
+            if (!fromHistory) pushAppState({ view: 'login' });
+        }
+        function closeAdminModal(fromHistory = false) {
+            loginModal.classList.add('hidden');
+            if (!fromHistory && !historyLock && history.state && history.state.view === 'login') {
+                historyLock = true;
+                history.back();
+                setTimeout(() => { historyLock = false; }, 50);
+            }
+        }
         function attemptLogin() {
             if (passwordInput.value === ADMIN_MASTER_PASS) {
                 isAdminLoggedIn = true;
@@ -790,15 +931,24 @@
             const container = document.getElementById('image-preview');
             container.innerHTML = currentImages.map((img, idx) => `
                 <div class="relative group">
-                    <img src="${img.dataUrl}" class="thumb border border-slate-200 dark:border-slate-700">
-                    <button type="button" onclick="removeImage(${idx})" class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-times"></i></button>
+                    <img src="${img.dataUrl}" class="thumb border border-slate-200 dark:border-slate-700" onclick="openLightboxFromCurrent(${idx})" title="Ver ampliada">
+                    <button type="button" onclick="event.stopPropagation(); removeImage(${idx})" class="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-times"></i></button>
                 </div>
             `).join('');
         }
         function removeImage(idx) { currentImages.splice(idx, 1); renderImagePreviews(); }
+        function openLightboxFromCurrent(idx) {
+            const img = currentImages[idx];
+            if (img) openLightbox(img.dataUrl, img.name || `Imagen ${idx + 1}`);
+        }
+        function openLightboxFromReport(idx) {
+            const r = loadReports().find(x => x.id === currentDetailReportId);
+            const img = r && r.imagenes && r.imagenes[idx];
+            if (img) openLightbox(img.dataUrl, img.name || `Imagen ${idx + 1}`);
+        }
 
         // --- Abrir modal (crear o editar) ---
-        function openReportModal(id = null) {
+        function openReportModal(id = null, fromHistory = false) {
             if (!isAdminLoggedIn) { showToast('Inicia sesión de Admin para crear o editar reportes'); return; }
             const local = getLocalById(selectedLocalId);
             if (!local) return;
@@ -837,12 +987,21 @@
                 setTimeString('salida', '05:00 PM');
             }
             document.getElementById('report-modal').classList.remove('hidden');
+            if (!fromHistory) pushAppState({ view: 'report-form', localId: selectedLocalId, reportId: id || null });
         }
-        function closeReportModal() { document.getElementById('report-modal').classList.add('hidden'); }
+        function closeReportModal(fromHistory = false) {
+            document.getElementById('report-modal').classList.add('hidden');
+            if (!fromHistory && !historyLock && history.state && history.state.view === 'report-form') {
+                historyLock = true;
+                history.back();
+                setTimeout(() => { historyLock = false; }, 50);
+            }
+        }
 
         function saveReport() {
             const id = document.getElementById('report-id').value;
             const localId = Number(document.getElementById('report-local-id').value);
+            const existing = id ? loadReports().find(x => x.id === id) : null;
 
             const data = {
                 id: id || cryptoId(),
@@ -857,7 +1016,8 @@
                 implementos: document.getElementById('report-implementos').value.trim(),
                 personal: [...selectedPersonnel],
                 imagenes: currentImages,
-                creado_en: new Date().toISOString(),
+                creado_en: existing?.creado_en || new Date().toISOString(),
+                actualizado_en: new Date().toISOString(),
             };
 
             if (!data.fecha) { showToast("Completa al menos la fecha"); return; }
@@ -940,16 +1100,24 @@
 
         let currentDetailReportId = null;
 
-        function openDetailModal(id) {
+        function formatCreadoEn(iso) {
+            if (!iso) return '—';
+            try {
+                const d = new Date(iso);
+                return d.toLocaleString('es-EC', { dateStyle: 'medium', timeStyle: 'short' });
+            } catch (e) { return iso; }
+        }
+
+        function openDetailModal(id, fromHistory = false) {
             const r = loadReports().find(x => x.id === id);
             if (!r) return;
             currentDetailReportId = id;
             const local = getLocalById(r.local_id);
             const personNames = (r.personal || []).map(pid => PERSONNEL.find(p => p.id === pid)?.nombre || pid).join(', ') || 'Sin asignar';
-            const imagesHtml = (r.imagenes || []).map(img => `
+            const imagesHtml = (r.imagenes || []).map((img, i) => `
                 <div class="flex flex-col items-center gap-1">
-                    <a href="${img.dataUrl}" download="${img.name}"><img src="${img.dataUrl}" class="thumb border border-slate-200 dark:border-slate-700"></a>
-                    ${img.exif && img.exif.fecha_captura ? `<span class="text-[10px] text-slate-400">${img.exif.fecha_captura}</span>` : ''}
+                    <img src="${img.dataUrl}" alt="${img.name || 'Imagen ' + (i + 1)}" class="thumb border border-slate-200 dark:border-slate-700" onclick="openLightboxFromReport(${i})" title="Ver ampliada">
+                    ${img.exif && img.exif.fecha_captura ? `<span class="text-[10px] text-slate-400">${img.exif.fecha_captura}</span>` : `<span class="text-[10px] text-slate-400">Toca para ampliar</span>`}
                 </div>`).join('') || '<p class="text-slate-400 text-xs">Sin imágenes adjuntas</p>';
 
             document.getElementById('report-detail-content').innerHTML = `
@@ -958,9 +1126,10 @@
                     <span class="text-[10px] font-bold px-2 py-1 rounded-full border uppercase ${r.tipo === 'emergencia' ? 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/40 dark:text-red-300 dark:border-red-800' : 'bg-brand-100 text-brand-700 border-brand-200 dark:bg-brand-900/40 dark:text-brand-300 dark:border-brand-800'}">${r.tipo}</span>
                 </div>
                 <p class="text-slate-500 dark:text-slate-400 text-xs"><i class="fas fa-map-marker-alt mr-1 text-brand-500"></i>${local ? `${local.nombre_sitio} — ${local.ciudad}, ${local.provincia}` : 'Local no encontrado'}</p>
+                <p class="text-slate-400 dark:text-slate-500 text-xs"><i class="far fa-clock mr-1"></i>Registrado: ${formatCreadoEn(r.creado_en)}</p>
 
                 <div class="grid grid-cols-3 gap-3 text-xs">
-                    <div class="bg-slate-50 dark:bg-slate-900/40 rounded-lg p-3"><p class="text-slate-400 mb-1">Fecha</p><p class="font-semibold">${r.fecha || '—'}</p></div>
+                    <div class="bg-slate-50 dark:bg-slate-900/40 rounded-lg p-3"><p class="text-slate-400 mb-1">Fecha servicio</p><p class="font-semibold">${r.fecha || '—'}</p></div>
                     <div class="bg-slate-50 dark:bg-slate-900/40 rounded-lg p-3"><p class="text-slate-400 mb-1">Entrada</p><p class="font-semibold">${r.hora_entrada || '—'}</p></div>
                     <div class="bg-slate-50 dark:bg-slate-900/40 rounded-lg p-3"><p class="text-slate-400 mb-1">Salida</p><p class="font-semibold">${r.hora_salida || '—'}</p></div>
                 </div>
@@ -969,59 +1138,175 @@
                 <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Problema reportado</p><p class="text-slate-700 dark:text-slate-300">${r.problema || '—'}</p></div>
                 <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Reparación efectuada</p><p class="text-slate-700 dark:text-slate-300">${r.reparacion || '—'}</p></div>
                 <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">Implementos utilizados</p><p class="text-slate-700 dark:text-slate-300">${r.implementos || '—'}</p></div>
-                <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">Imágenes</p><div class="flex flex-wrap gap-3">${imagesHtml}</div></div>
+                <div><p class="text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">Imágenes <span class="normal-case font-medium text-slate-400">(toca para ampliar)</span></p><div class="flex flex-wrap gap-3">${imagesHtml}</div></div>
             `;
             document.getElementById('report-detail-modal').classList.remove('hidden');
+            if (!fromHistory) pushAppState({ view: 'report-detail', localId: selectedLocalId || r.local_id, reportId: id });
         }
-        function closeDetailModal() {
+        function closeDetailModal(fromHistory = false) {
             document.getElementById('report-detail-modal').classList.add('hidden');
             currentDetailReportId = null;
+            if (!fromHistory && !historyLock && history.state && history.state.view === 'report-detail') {
+                historyLock = true;
+                history.back();
+                setTimeout(() => { historyLock = false; }, 50);
+            }
         }
 
-        function downloadReportPdf() {
+        function pdfImageFormat(dataUrl) {
+            if (!dataUrl) return 'JPEG';
+            if (dataUrl.indexOf('image/png') !== -1) return 'PNG';
+            if (dataUrl.indexOf('image/webp') !== -1) return 'WEBP';
+            return 'JPEG';
+        }
+
+        async function downloadReportPdf() {
             const r = loadReports().find(x => x.id === currentDetailReportId);
             if (!r) { showToast('No hay reporte para exportar'); return; }
             const local = getLocalById(r.local_id);
             const personNames = (r.personal || []).map(pid => PERSONNEL.find(p => p.id === pid)?.nombre || pid).join(', ') || 'Sin asignar';
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-            const margin = 18;
-            let y = 20;
-            const line = (txt, size = 11, style = 'normal') => {
-                doc.setFont('helvetica', style);
+            const pageW = 210, pageH = 297;
+            const margin = 16;
+            const contentW = pageW - margin * 2;
+            let y = 0;
+
+            const ensureSpace = (need) => {
+                if (y + need > pageH - 18) {
+                    drawFooter();
+                    doc.addPage();
+                    drawHeader(false);
+                    y = 28;
+                }
+            };
+            const drawHeader = (first = true) => {
+                doc.setFillColor(2, 132, 199);
+                doc.rect(0, 0, pageW, 22, 'F');
+                doc.setFillColor(3, 105, 161);
+                doc.rect(0, 22, pageW, 1.5, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(16);
+                doc.text('FRISERTEC', margin, 10);
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(9);
+                doc.text('Reporte de Servicio Técnico', margin, 16);
+                doc.setFontSize(8);
+                doc.text(r.codigo || '', pageW - margin, 10, { align: 'right' });
+                doc.text((r.tipo || '').toUpperCase(), pageW - margin, 16, { align: 'right' });
+                doc.setTextColor(30, 41, 59);
+            };
+            const drawFooter = () => {
+                const page = doc.internal.getNumberOfPages();
+                doc.setDrawColor(226, 232, 240);
+                doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
+                doc.setFontSize(7);
+                doc.setTextColor(148, 163, 184);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Frisertec · Documento generado automáticamente', margin, pageH - 7);
+                doc.text(`Pág. ${page}`, pageW - margin, pageH - 7, { align: 'right' });
+            };
+            const sectionTitle = (title) => {
+                ensureSpace(12);
+                doc.setFillColor(241, 245, 249);
+                doc.roundedRect(margin, y - 4, contentW, 8, 1, 1, 'F');
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.setTextColor(2, 132, 199);
+                doc.text(title.toUpperCase(), margin + 2, y + 1.5);
+                doc.setTextColor(30, 41, 59);
+                y += 8;
+            };
+            const bodyText = (txt, size = 9.5) => {
+                doc.setFont('helvetica', 'normal');
                 doc.setFontSize(size);
-                const lines = doc.splitTextToSize(String(txt || '—'), 210 - margin * 2);
+                const lines = doc.splitTextToSize(String(txt || '—'), contentW);
+                ensureSpace(lines.length * 4.2 + 2);
                 doc.text(lines, margin, y);
-                y += lines.length * (size * 0.4) + 3;
+                y += lines.length * 4.2 + 3;
+            };
+            const metaRow = (label, value, x, w) => {
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7.5);
+                doc.setTextColor(100, 116, 139);
+                doc.text(label, x, y);
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.setTextColor(30, 41, 59);
+                const lines = doc.splitTextToSize(String(value || '—'), w);
+                doc.text(lines, x, y + 4.5);
             };
 
-            doc.setFillColor(2, 132, 199);
-            doc.rect(0, 0, 210, 14, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(14);
-            doc.text('Frisertec — Reporte de Servicio', margin, 9.5);
-            doc.setTextColor(30, 41, 59);
+            drawHeader(true);
+            y = 30;
 
-            y = 24;
-            line(`Código: ${r.codigo}`, 12, 'bold');
-            line(`Tipo: ${(r.tipo || '').toUpperCase()}`, 11);
-            line(`Local: ${local ? `${local.nombre_sitio} — ${local.ciudad}, ${local.provincia}` : 'N/D'}`, 11);
-            line(`Fecha: ${r.fecha || '—'}   |   Entrada: ${r.hora_entrada || '—'}   |   Salida: ${r.hora_salida || '—'}`, 11);
-            y += 2;
-            line('Personal', 11, 'bold');
-            line(personNames, 10);
-            line('Problema reportado', 11, 'bold');
-            line(r.problema, 10);
-            line('Reparación efectuada', 11, 'bold');
-            line(r.reparacion, 10);
-            line('Implementos utilizados', 11, 'bold');
-            line(r.implementos, 10);
+            // Caja meta
+            doc.setDrawColor(226, 232, 240);
+            doc.setFillColor(248, 250, 252);
+            doc.roundedRect(margin, y, contentW, 28, 2, 2, 'FD');
+            y += 6;
+            const col = contentW / 3;
+            metaRow('LOCAL / SITIO', local ? local.nombre_sitio : 'N/D', margin + 3, col - 6);
+            metaRow('CIUDAD / PROVINCIA', local ? `${local.ciudad}, ${local.provincia}` : 'N/D', margin + col + 3, col - 6);
+            metaRow('FECHA DE REGISTRO', formatCreadoEn(r.creado_en), margin + col * 2 + 3, col - 6);
+            y += 14;
+            metaRow('FECHA SERVICIO', r.fecha || '—', margin + 3, col - 6);
+            metaRow('HORA ENTRADA', r.hora_entrada || '—', margin + col + 3, col - 6);
+            metaRow('HORA SALIDA', r.hora_salida || '—', margin + col * 2 + 3, col - 6);
+            y += 14;
 
-            y = Math.max(y, 270);
+            sectionTitle('Personal asignado');
+            bodyText(personNames);
+            sectionTitle('Problema reportado');
+            bodyText(r.problema);
+            sectionTitle('Reparación efectuada');
+            bodyText(r.reparacion);
+            sectionTitle('Implementos utilizados');
+            bodyText(r.implementos || '—');
+
+            const imgs = r.imagenes || [];
+            if (imgs.length) {
+                sectionTitle(`Evidencia fotográfica (${imgs.length})`);
+                const gap = 4;
+                const imgW = (contentW - gap) / 2;
+                const imgH = 55;
+                for (let i = 0; i < imgs.length; i++) {
+                    if (i % 2 === 0) ensureSpace(imgH + 12);
+                    const x = margin + (i % 2) * (imgW + gap);
+                    try {
+                        const fmt = pdfImageFormat(imgs[i].dataUrl);
+                        doc.setDrawColor(226, 232, 240);
+                        doc.roundedRect(x, y, imgW, imgH, 1.5, 1.5, 'S');
+                        doc.addImage(imgs[i].dataUrl, fmt, x + 1.5, y + 1.5, imgW - 3, imgH - 3, undefined, 'FAST');
+                        doc.setFontSize(7);
+                        doc.setTextColor(100, 116, 139);
+                        doc.text(imgs[i].name || `Foto ${i + 1}`, x, y + imgH + 4, { maxWidth: imgW });
+                    } catch (err) {
+                        doc.setFontSize(8);
+                        doc.setTextColor(148, 163, 184);
+                        doc.text('(Imagen no disponible)', x + 4, y + imgH / 2);
+                    }
+                    if (i % 2 === 1 || i === imgs.length - 1) y += imgH + 10;
+                }
+            }
+
+            // Firmas
+            ensureSpace(32);
+            y += 4;
+            doc.setDrawColor(203, 213, 225);
+            doc.line(margin, y + 18, margin + 60, y + 18);
+            doc.line(pageW - margin - 60, y + 18, pageW - margin, y + 18);
             doc.setFontSize(8);
-            doc.setTextColor(148, 163, 184);
-            doc.text('Generado por Frisertec Accesos · prototipo local', margin, 285);
+            doc.setTextColor(100, 116, 139);
+            doc.text('Técnico responsable', margin, y + 23);
+            doc.text('Vo.Bo. Supervisor', pageW - margin - 60, y + 23);
+
+            const total = doc.internal.getNumberOfPages();
+            for (let p = 1; p <= total; p++) {
+                doc.setPage(p);
+                drawFooter();
+            }
 
             doc.save(`${r.codigo || 'reporte'}.pdf`);
             showToast('PDF descargado');
